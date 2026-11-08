@@ -22,6 +22,10 @@ gradlew.bat assembleDebug testDebugUnitTest
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Install it on a connected Android TV with `adb install -r app-debug.apk` from that output directory. On first launch, create a profile. Open a demo film's details to add it to My List. The Play button explains that playback is a later milestone.
 
+## Test on this PC
+
+The Google TV API 34 x86 emulator, Android SDK and virtual device named `Chitram_TV` are prepared under `E:\ChitramAndroidSdk` and `E:\ChitramAVD`. First enable CPU virtualization in firmware and Windows Hypervisor Platform, then restart Windows. Double-click [scripts/start-chitram-tv.cmd](scripts/start-chitram-tv.cmd) to launch the emulator, install the debug APK and open Chitram. The script checks acceleration before launch. If the APK has been rebuilt, it installs the latest debug build.
+
 ## TMDB setup
 
 TMDB credentials are **not used by this foundation build**. When metadata integration is implemented, configure them in ignored local configuration. Do not put credentials in Git commits, source files, issues or screenshots. TMDB supplies metadata, not playback.
@@ -30,5 +34,5 @@ TMDB credentials are **not used by this foundation build**. When metadata integr
 
 - All 40 films are fictional demo records, not a verified Einthusan catalogue.
 - No video playback, catalogue synchronisation or TMDB API calls yet.
-- The image cache target and Sony TV hardware validation belong to later milestones. On this machine, the Google TV emulator did not reach a usable boot state without hardware acceleration.
+- The image cache target and Sony TV hardware validation belong to later milestones. On this machine, the Google TV emulator could not boot before CPU virtualization was enabled in firmware.
 - Release signing and repeatable sideload updates are not configured yet.

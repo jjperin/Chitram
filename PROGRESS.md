@@ -20,6 +20,7 @@ Implemented in source:
 - Debug APK generated at `app/build/outputs/apk/debug/app-debug.apk` (about 10.9 MB). `aapt` confirms package `com.chitram.tv`, minimum API 23, target API 34, and a Leanback launcher activity with an app banner.
 - An Android Google TV API 34 emulator image was installed and an AVD was created. It did not reach a usable boot state with the machine's old emulator and no x86 acceleration. An emulator update then failed because drive C had insufficient space. The temporary AVD was removed. No physical Android TV was connected.
 - The instrumented Room persistence test is authored but could not run without a booted emulator/device.
+- A current Android Emulator, Google TV API 34 x86 image, and `Chitram_TV` virtual device are installed on drive E. The PC reports virtualization disabled in firmware. ARM and software-only x86 attempts did not boot, so the app remains untested on the emulator until virtualization and Windows Hypervisor Platform are enabled. [scripts/start-chitram-tv.cmd](scripts/start-chitram-tv.cmd) is ready to launch the emulator, install the APK and open Chitram after the required reboot.
 
 ## Remaining work and known limitations
 
