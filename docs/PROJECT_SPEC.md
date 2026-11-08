@@ -1,0 +1,52 @@
+# Chitram project specification
+
+This version-controlled specification summarizes the owner's initial project brief and records the later local catalogue and image-caching requirements for future Chitram development. Implementation must proceed by milestone with builds and tests; requirements below do not imply that an integration has been proven or implemented.
+
+## Product and architecture
+
+- Native Kotlin Android TV / Google TV app, initially tested on a Sony Google TV and distributed as a privately sideloaded APK.
+- Original, cinematic dark interface designed for D-pad/OK/Back navigation, with Home, Search, Browse and My List plus compact profile access.
+- Local family profiles with one primary language, zero or more distinct secondary languages, optional genres, and separate watch progress, history, My List and recommendations. Home rails derive from preferences and available titles; no language is hardcoded as the default.
+- Local-first architecture using Room for profiles, catalogue and viewing state, and DataStore for small app settings. No account, cloud database, dedicated backend, analytics, paid recommendation service or downloaded movie files.
+- TMDB supplies metadata and artwork, not playback. Ratings sourced from TMDB must be labelled as community ratings. Store credentials only in ignored local configuration, never in Git.
+- Catalogue discovery, metadata enrichment and playback-source resolution remain separate. A TMDB match or a constructed video URL does not prove that a film is available. Einthusan catalogue discovery and direct-MP4 playback are experimental and unverified at scale; validate access and rights before relying on them. Do not bypass DRM, authentication, access controls or provider advertising.
+- Recommendations use a deterministic, documented scoring function over confirmed catalogue titles, with primary and secondary language, genre, quality and recency signals. No ML or LLM service.
+
+## Local movie catalogue
+
+- Store the **entire catalogue confirmed available from the configured source** locally in Room. Plan for approximately 4,000 or more Einthusan films if discovery and access prove viable; that figure is a planning estimate, not a verified inventory or a reason to mark unverified films playable.
+- Persist stable source/movie IDs, title, language, release date or year, description, genres, rating and its provenance, matched TMDB ID, and poster/backdrop URLs when available. Keep catalogue availability distinct from TMDB metadata and temporary playback URLs.
+- Home, search, filters and recommendations should query the local database first for fast, offline-capable browsing. Use indexes and paging/lazy queries appropriate for the measured catalogue size.
+- Never download or store movie video files. Preserve locally stored catalogue data when offline or when a refresh fails.
+
+## Catalogue synchronisation
+
+- Show stored data immediately on launch. If the last successful catalogue check was more than 24 hours ago, check for additions and updates in the background without blocking the interface.
+- Prefer incremental discovery and updates, avoiding a full catalogue download when the source supports it. Perform a more comprehensive refresh about every seven days and provide a manual refresh action.
+- Record refresh state and failure separately from existing catalogue records. A failed request must not erase cached titles or mark them unavailable without evidence.
+- The incremental and seven-day strategies depend on a catalogue source that actually exposes reliable discovery and change information. Prove that capability during the catalogue milestone; document limitations if it is unavailable.
+
+## Image caching
+
+- Use Coil for automatic on-demand image loading and caching. Store TMDB poster and backdrop **URLs** in Room; store image bytes in Coil's disk cache, not in Room.
+- Target an approximately **250 MB** disk cache. Display cached images promptly, fetch and cache missing images as needed, and use the cache's least-recently-used eviction when full.
+- Load images lazily as rails and cards become visible. Request appropriately sized images and use bounded memory caching to limit bandwidth, storage and memory use.
+- Show a clean placeholder for absent or failed images. Do not pre-download artwork for every catalogue title.
+- Preserve the disk cache across app launches. Avoid repeated metadata requests when cached metadata is still valid.
+
+## Performance and storage target
+
+- Keep D-pad navigation, scrolling and screen changes responsive while catalogue sync and image requests run in the background.
+- Aim for roughly **300–400 MB of total app storage**, including APK, metadata database and image cache, subject to measurements on the target Sony Google TV. Adjust cache sizing if measured storage or device limits require it.
+- Avoid unnecessary network calls and full metadata re-downloads. Offline or incomplete metadata must produce useful screens, not crashes or blank layouts.
+
+## Development milestones
+
+0. Bootstrap a native Android TV project and build a polished mock-data UI with profile picker, focusable navigation and correct Back behaviour. Mock films must be clearly labelled; do not imply catalogue access or playback.
+1. Prove native Media3 playback on an accessible, legitimate test source and test remote controls, errors, seeking and resume on the target TV. Treat the owner-supplied Einthusan URL as an optional manual experiment, not a proven integration.
+2. Prove catalogue discovery and availability separately from TMDB matching. Build the Room catalogue, metadata cache and background refresh path when the source's capabilities are established. Implement Coil's on-demand image cache and measure storage. Do not show TMDB-only titles as playable.
+3. Build and verify Home, Search, Browse, Details and My List against locally stored, confirmed catalogue titles, with TV-friendly filters, sort, focus restoration and playback navigation.
+4. Add editable profiles, dynamic language rails, independent viewing state and deterministic recommendations.
+5. Test offline behaviour, data retention, performance, accessibility, actual Sony remote navigation, signing and sideload updates. Report measured storage and verified integrations.
+
+At each milestone: compile, run meaningful tests, state what works, identify blockers and name the next concrete task. Do not implement a later milestone solely because it appears in this specification.

@@ -14,4 +14,4 @@ The Android app has not been implemented yet. The catalogue and video-source int
 
 ## Development plan
 
-See the project brief for the full requirements. The first implementation milestone is an Android TV project with a polished mock-data home screen, profile picker, D-pad focus, and Back navigation. Playback and catalogue integrations follow only after separate verification.
+The [project specification](docs/PROJECT_SPEC.md) records the product requirements and development milestones for future sessions. The first implementation milestone is an Android TV project with a polished mock-data home screen, profile picker, D-pad focus, and Back navigation. Playback and catalogue integrations follow only after separate verification.
