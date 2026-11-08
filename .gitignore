@@ -1,0 +1,20 @@
+# Android/Gradle generated files
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+.idea/
+*.iml
+*.apk
+*.aab
+
+# Local credentials and signing material
+*.keystore
+*.jks
+*.pem
+*.p12
+*.env
+.env*
+secrets.properties
+tmdb.properties
