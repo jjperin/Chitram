@@ -1,17 +1,34 @@
 # Chitram
 
-Chitram is a planned native Android TV app for browsing and playing films with family profiles and language-aware recommendations. Development will proceed in tested milestones, starting with a remote-first mock-data interface.
+Chitram is a native Android TV / Google TV film-browsing app in development. This first foundation release uses **fictional, clearly labelled demonstration films**. It does not connect to Einthusan, retrieve TMDB metadata or play video yet.
 
-## Project status
+The [project specification](docs/PROJECT_SPEC.md) records product requirements. [Progress](PROGRESS.md) records what has been implemented and verified.
 
-The Android app has not been implemented yet. The catalogue and video-source integrations described in the project brief remain unverified. TMDB will provide metadata only; it does not provide playback.
+## Current foundation
 
-## TMDB API setup
+- TV launcher entry, dark 16:9 interface and D-pad focusable Home, Search, Browse and My List navigation.
+- Local Room storage for profiles, demo films, watchlists and future playback progress.
+- Profile create/edit/select with primary and secondary language choices and favourite genres. Languages: Tamil, Hindi, Telugu, Malayalam, Kannada, Bengali, Marathi and Punjabi.
+- Profile-driven home rows, title search, browse filters and sorting, per-profile My List, and details with an honest playback placeholder.
+- Deterministic local recommendation ranking. Original gradient artwork placeholders are used for demo films; Coil is wired for future real artwork URLs.
 
-1. Create a TMDB account and request an API credential through [TMDB's API settings](https://www.themoviedb.org/settings/api).
-2. Keep the credential in local configuration when the Android project is added. Do not put it in source files, commits, issues, or screenshots.
-3. The app's eventual TMDB configuration will be documented here once implemented.
+## Build
 
-## Development plan
+Use a current Android Studio version or the Gradle wrapper. Install Android SDK Platform 34 and Build Tools 34.0.0, and use JDK 17 or 21. The old Android Studio installation originally present on this machine predates this build configuration; command-line Gradle is the verified path.
 
-The [project specification](docs/PROJECT_SPEC.md) records the product requirements and development milestones for future sessions. The first implementation milestone is an Android TV project with a polished mock-data home screen, profile picker, D-pad focus, and Back navigation. Playback and catalogue integrations follow only after separate verification.
+```text
+gradlew.bat assembleDebug testDebugUnitTest
+```
+
+The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Install it on a connected Android TV with `adb install -r app-debug.apk` from that output directory. On first launch, create a profile. Open a demo film's details to add it to My List. The Play button explains that playback is a later milestone.
+
+## TMDB setup
+
+TMDB credentials are **not used by this foundation build**. When metadata integration is implemented, configure them in ignored local configuration. Do not put credentials in Git commits, source files, issues or screenshots. TMDB supplies metadata, not playback.
+
+## Limitations
+
+- All 40 films are fictional demo records, not a verified Einthusan catalogue.
+- No video playback, catalogue synchronisation or TMDB API calls yet.
+- The image cache target and Sony TV hardware validation belong to later milestones. On this machine, the Google TV emulator did not reach a usable boot state without hardware acceleration.
+- Release signing and repeatable sideload updates are not configured yet.

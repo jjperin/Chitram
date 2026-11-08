@@ -1,5 +1,7 @@
 # Android/Gradle generated files
 .gradle/
+.tooling/
+gradle-*-bin.zip
 .kotlin/
 build/
 **/build/
