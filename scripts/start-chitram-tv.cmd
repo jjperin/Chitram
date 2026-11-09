@@ -11,11 +11,15 @@ if not exist "%EMULATOR%" goto missing
 if not exist "%ADB%" goto missing
 if not exist "%APK%" goto missing
 
+set "device="
+for /f "delims=" %%A in ('"%ADB%" -e get-state 2^>nul') do set "device=%%A"
+if /I "%device%"=="device" goto poll
+
 "%EMULATOR%" -accel-check >nul
 if errorlevel 1 goto acceleration
 
 echo Starting the Google TV emulator...
-start "" "%EMULATOR%" -avd Chitram_TV -no-snapshot-load
+start "" "%EMULATOR%" -avd Chitram_TV -no-snapshot-load -no-boot-anim -gpu host -memory 4096 -skip-adb-auth
 set /a tries=0
 
 :poll
@@ -24,7 +28,7 @@ for /f "delims=" %%A in ('%ADB% -e shell getprop sys.boot_completed 2^>nul') do 
 if "%boot%"=="1" goto ready
 set /a tries+=1
 if %tries% GEQ 100 goto timeout
-timeout /t 3 >nul
+"%SystemRoot%\System32\ping.exe" -n 4 127.0.0.1 >nul
 goto poll
 
 :ready
@@ -33,8 +37,10 @@ echo Installing Chitram...
 if errorlevel 1 goto failed
 "%ADB%" -e shell am start -n com.chitram.tv/.MainActivity
 if errorlevel 1 goto failed
+"%SystemRoot%\System32\ping.exe" -n 3 127.0.0.1 >nul
+"%ADB%" -e shell am start -n com.chitram.tv/.MainActivity
+if errorlevel 1 goto failed
 echo Chitram is open in the Google TV emulator.
-pause
 exit /b 0
 
 :acceleration

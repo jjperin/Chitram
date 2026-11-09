@@ -5,12 +5,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-val Ink = Color(0xFF0B101B)
-val Panel = Color(0xFF151C2A)
-val PanelLight = Color(0xFF202B3C)
-val Cream = Color(0xFFF5F0E8)
-val Muted = Color(0xFFABB5C4)
-val Gold = Color(0xFFD9AC70)
+val Ink = Color(0xFF090B0F)
+val Panel = Color(0xFF14171D)
+val PanelLight = Color(0xFF252A32)
+val Cream = Color(0xFFF7F5F1)
+val Muted = Color(0xFF9DA3AD)
+val Gold = Color(0xFFE4B675)
 
 @Composable
 fun ChitramTheme(content: @Composable () -> Unit) {

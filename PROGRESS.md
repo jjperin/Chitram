@@ -19,13 +19,57 @@ Implemented in source:
 - Eight JVM tests passed: recommendation/language and Continue Watching rows (5), Browse filtering/sorting (2), and Room profile/watchlist persistence after database reopen (1).
 - Debug APK generated at `app/build/outputs/apk/debug/app-debug.apk` (about 10.9 MB). `aapt` confirms package `com.chitram.tv`, minimum API 23, target API 34, and a Leanback launcher activity with an app banner.
 - An Android Google TV API 34 emulator image was installed and an AVD was created. It did not reach a usable boot state with the machine's old emulator and no x86 acceleration. An emulator update then failed because drive C had insufficient space. The temporary AVD was removed. No physical Android TV was connected.
-- The instrumented Room persistence test is authored but could not run without a booted emulator/device.
-- A current Android Emulator, Google TV API 34 x86 image, and `Chitram_TV` virtual device are installed on drive E. The PC reports virtualization disabled in firmware. ARM and software-only x86 attempts did not boot, so the app remains untested on the emulator until virtualization and Windows Hypervisor Platform are enabled. [scripts/start-chitram-tv.cmd](scripts/start-chitram-tv.cmd) is ready to launch the emulator, install the APK and open Chitram after the required reboot.
+- The instrumented Room persistence test is authored but has not yet been run on the emulator.
+- A current Android Emulator, Google TV API 34 x86 image, and `Chitram_TV` virtual device are installed on drive E. Earlier boot attempts failed before BIOS virtualization and Windows Hypervisor Platform were enabled. [scripts/start-chitram-tv.cmd](scripts/start-chitram-tv.cmd) provides the emulator launch, APK install and app start commands, though its full flow has not been reverified after the AVD input setting change.
+
+### Emulator launch update — 8 November 2026
+
+- After BIOS virtualization and Windows Hypervisor Platform were enabled, `Chitram_TV` booted on drive E with WHPX acceleration. The AVD needed `hw.keyboard=yes` for D-pad/keyboard input; it currently uses 4 GB RAM and host graphics for testing.
+- `adb` reported the emulator as a connected device. `app-debug.apk` installed successfully, `com.chitram.tv/.MainActivity` launched, and an emulator screenshot confirmed the profile picker with **Create profile** focused. This verifies installation and first launch, not the remaining navigation flows or playback.
+- Google TV setup and a frozen USB debugging prompt complicated first boot. The test AVD was reset with the owner's approval. A local `-skip-adb-auth` emulator flag was used for this run; it is not an app setting or a production requirement.
+
+### TV navigation and layout update — 8 November 2026
+
+- Main screens now focus their active sidebar item on entry. From filters and film cards, Left explicitly returns to that item, including from a lower Browse card that previously sent focus to Switch profile.
+- The app uses a TV-safe outer margin. The sidebar scrolls on short displays so Switch profile can be reached without clipping. The profile picker scrolls, Browse uses one lazy vertical grid for filters and films, and the featured banner grows to fit its title on narrow layouts.
+- `assembleDebug testDebugUnitTest` passed. The updated APK was installed on the Google TV emulator. D-pad navigation from Browse to a filter and a lower film card, then Left back to Browse, was visually checked at 1920×1080 and at a temporary 1280×720 display override. Switch profile was fully visible and focusable after sidebar scrolling at 1280×720. The emulator display override was reset to 1920×1080.
+
+### Visual polish and profile selection — 9 November 2026
+
+- Each profile has one focusable selection control on its avatar; its name is a plain label beneath it. Edit profile remains a separate action.
+- Refined the dark palette, compact sidebar, focus indicators, spacing, headings, film cards and details typography. The featured DEMO film now uses original generated artwork; fictional titles remain clearly labelled DEMO.
+- `assembleDebug testDebugUnitTest --offline` passed after the changes (eight JVM tests). The updated APK installed on the Google TV emulator. At 1920×1080, the profile picker, Home and Browse screens were visually checked. The first avatar received initial focus; Down focused Edit profile, and Up then OK opened Home through the avatar. The emulator had to be restarted after its setup screen froze. A physical Sony TV and smaller display sizes were not tested for this revision.
+
+### Focus-driven Home preview — 9 November 2026
+
+- Home now updates its large preview when D-pad focus moves across film cards. It shows the selected DEMO film's title, year, language, genres and short synopsis; OK on the card opens details. The selected preview survives Back from details.
+- Home rows use landscape cards. The preview and cards stay visible together at 1920×1080 and in the emulator's temporary 1280×720 display mode; the 720p layout shortens the preview and cards. The display override was reset to 1920×1080.
+- The final `assembleDebug testDebugUnitTest --offline` build passed all eight JVM tests, and its APK installed on the Google TV emulator. D-pad Right changed the preview between the first and second films; OK opened the matching details, and Back returned to Home with the selected preview retained. Physical Sony TV navigation and lower resolutions were not tested.
+
+### One-click emulator launch — 9 November 2026
+
+- Updated `scripts/start-chitram-tv.cmd` to reuse a running emulator and to launch a stopped test AVD with the same 4 GB, host-graphics and local ADB settings used during verification. It installs the current debug APK and brings Chitram to the foreground.
+- Ran the script successfully against the already running emulator and confirmed `com.chitram.tv/.MainActivity` was the resumed activity. A cold-start run of the revised script was not tested.
+
+### Predictable D-pad focus — 9 November 2026
+
+- Home film rails and Browse filter groups now enter at their first item and restore the previously focused item when revisited. Left moves to the previous item within a row or grid and returns to the active sidebar item only from its left edge. Right from the sidebar targets that screen's content; on Home it returns to the last focused row.
+- Browse and My List attach content entry to their scrollable grids, avoiding a crash when a previously targeted first item has scrolled off screen. Empty My List keeps focus on its menu item. Search returns to the menu with Left when its query is empty, including while the TV keyboard is showing.
+- The profile picker waits for Room to emit saved profiles before enabling Add profile, removing an early-OK startup race.
+- `assembleDebug testDebugUnitTest --offline` passed (eight JVM tests). The APK installed on the Google TV emulator. D-pad entry, vertical row transitions, row restoration, card-to-card Left, Browse filter-to-film transitions, sidebar return, Search return and empty My List were visually checked at 1920×1080. Browse entry and sidebar re-entry after scrolling, plus Home row return, were checked at a temporary 1280×720 override; the display was reset to 1920×1080. No focus crash appeared in the final emulator checks. The physical Sony TV and exhaustive combinations of all screens and text-entry states remain untested.
+
+### Local catalogue and metadata — 9 November 2026
+
+- Added a metadata-only Einthusan catalogue adapter for the eight owner-supplied languages. A recent-page check runs when due after 24 hours; a full alphabetic scan runs when due after about seven days. Full scans save a language, letter and page checkpoint so interrupted scans resume without deleting existing data. Browse also offers manual Check new and Full scan actions.
+- The completed emulator scan stored **16,538 distinct Einthusan listings**: Bengali 869, Hindi 4,368, Kannada 1,501, Malayalam 2,675, Marathi 388, Punjabi 351, Tamil 3,454 and Telugu 2,932. These are page listings, not verified playable films. The source pages do not provide a reliable change feed, so the recent check may miss changes until a full scan. The scan checkpoint reset to its start position with no error after completion.
+- Room now stores source IDs, language, title, year, synopsis, source page, availability and optional TMDB metadata. Explicit migrations from database versions 1 through 3 preserve profiles, movies and watchlists. All 40 fictional demos stay labelled DEMO; real listings stay labelled LISTED and have no Play control. Home shows real listings in a separate playback-unverified rail, while recommendations remain limited to demos or independently confirmed titles.
+- On opening a real listing, exact-title/year TMDB matching adds poster and backdrop URLs, genres and a labelled community rating when a safe match exists. Coil loads artwork on demand with a 250 MB disk cache; an unmatched listing keeps its source text and placeholder. About & credits includes TMDB's approved logo and API notice.
+- `assembleDebug testDebugUnitTest --offline` passed **19 JVM tests**. The Android instrumentation test for profile and list persistence passed on the Google TV API 34 emulator. Gradle removed the test app package after this run; the completed catalogue and saved profile were restored from a verified database snapshot, and the current APK was reinstalled. The restored database passed `PRAGMA integrity_check`, and Home, Browse, Search, About and a TMDB-enriched Vikram detail screen were visually checked. The current debug APK is approximately 17.3 MB; app data measured about 7.7 MB before substantial artwork caching. A physical Sony TV, offline sync recovery, full 250 MB cache eviction and playback have not been tested.
 
 ## Remaining work and known limitations
 
-- Test D-pad focus, Back navigation, profile editing and rendering in an Android TV emulator or on a Sony TV. These behaviours are implemented but not yet device-verified.
-- Add a real catalogue only after availability and access are proven. Keep TMDB enrichment and playback resolution separate.
+- Test the full D-pad, Back and profile editing flows on the physical Sony TV. The emulator checks above cover the reported sidebar return path and short-screen visibility, but not every screen or physical TV overscan setting.
+- Verify actual playback access separately from catalogue listing and TMDB matching; do not present a listing as playable until that work is complete.
 - Add Media3 playback in its own milestone, with legitimate test media and actual TV validation.
-- Add migrations before any Room schema change; preserve profile and watchlist data on APK updates.
-- Implement metadata/image caching and catalogue sync in their scheduled milestone.
+- Keep adding explicit migrations before future Room schema changes; preserve profile and watchlist data on APK updates.
+- Validate offline refresh recovery, full image-cache eviction and storage/performance on the physical Sony TV.

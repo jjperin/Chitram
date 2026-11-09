@@ -45,4 +45,14 @@ class RecommendationsTest {
         val result = recommend(tamilProfile.copy(favouriteGenres = ""), DemoCatalogue.movies)
         assertEquals("Tamil", result.first().language)
     }
+
+    @Test fun unverifiedListingsAppearOnlyInCatalogueRows() {
+        val listing = DemoCatalogue.movies.first().copy(
+            id = 123456789L, title = "Source listing", isDemo = false,
+            sourceProvider = "einthusan", sourceId = "source-1", availability = "listed"
+        )
+        val rows = homeRows(tamilProfile, DemoCatalogue.movies + listing, emptyList())
+        assertTrue(rows.first { it.title.startsWith("Einthusan Listings") }.movies.contains(listing))
+        assertFalse(rows.first { it.title == "Recommended for You" }.movies.contains(listing))
+    }
 }

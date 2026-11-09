@@ -15,7 +15,7 @@ fun browseMovies(movies: List<MovieEntity>, options: BrowseOptions): List<MovieE
         .filter { options.genre == "All" || options.genre in splitChoices(it.genres) }
         .filter {
             when (options.year) {
-                "2023–2025" -> it.releaseYear in 2023..2025
+                "2023+" -> it.releaseYear >= 2023
                 "2020–2022" -> it.releaseYear in 2020..2022
                 "2015–2019" -> it.releaseYear in 2015..2019
                 else -> true

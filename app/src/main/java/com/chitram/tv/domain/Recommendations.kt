@@ -43,17 +43,21 @@ fun homeRows(
     movies: List<MovieEntity>,
     progress: List<ProgressEntity>
 ): List<HomeRow> {
-    val byId = movies.associateBy { it.id }
+    val recommendable = movies.filter { it.isDemo || it.availability == "confirmed" }
+    val byId = recommendable.associateBy { it.id }
     val inProgress = progress.filter { !it.completed && it.positionMs > 0 && it.durationMs > 0 }
         .sortedByDescending { it.updatedAtMs }.mapNotNull { byId[it.movieId] }
     val selectedLanguages = listOf(profile.primaryLanguage) + splitChoices(profile.secondaryLanguages)
     val selected = selectedLanguages.distinct()
     return buildList {
         if (inProgress.isNotEmpty()) add(HomeRow("Continue Watching", inProgress, true))
-        val recommended = recommend(profile, movies, progress)
+        val recommended = recommend(profile, recommendable, progress)
         if (recommended.isNotEmpty()) add(HomeRow("Recommended for You", recommended))
+        val listed = movies.filter { !it.isDemo && it.language in selected }
+            .sortedWith(compareByDescending<MovieEntity> { it.releaseYear }.thenBy { it.title }).take(12)
+        if (listed.isNotEmpty()) add(HomeRow("Einthusan Listings · Playback Unverified", listed))
         val recent = movies.filter { it.language in selected }.sortedWith(compareByDescending<MovieEntity> { it.releaseYear }.thenBy { it.title }).take(12)
-        if (recent.isNotEmpty()) add(HomeRow("New Releases", recent))
+        if (recent.isNotEmpty()) add(HomeRow("Latest by Year", recent))
         selected.forEach { language ->
             val items = movies.filter { it.language == language }.take(12)
             if (items.isNotEmpty()) add(HomeRow("$language Films", items))
