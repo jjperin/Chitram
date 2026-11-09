@@ -20,6 +20,7 @@ class ChitramApplication : Application(), ImageLoaderFactory {
     val repository by lazy { ChitramRepository(database) }
 
     override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+        .crossfade(true)
         .memoryCache { MemoryCache.Builder(this).maxSizePercent(0.10).build() }
         .diskCache { DiskCache.Builder().directory(cacheDir.resolve("artwork")).maxSizeBytes(250L * 1024 * 1024).build() }
         .build()

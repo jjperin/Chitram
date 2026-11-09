@@ -46,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
@@ -251,12 +250,10 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
     val rows = remember(profile, movies, progress) { homeRows(profile, movies, progress) }
     val featured = rows.firstOrNull { it.title == "Recommended for You" }?.movies?.firstOrNull()
     var selectedMovieId by rememberSaveable(profile.id) { mutableStateOf<Long?>(null) }
-    var selectedRowTitle by rememberSaveable(profile.id) { mutableStateOf<String?>(null) }
     val preview = rows.asSequence().flatMap { it.movies.asSequence() }.firstOrNull { it.id == selectedMovieId } ?: featured
-    val entryRowTitle = selectedRowTitle?.takeIf { title -> rows.any { it.title == title } } ?: rows.firstOrNull()?.title
     BoxWithConstraints(Modifier.fillMaxSize().background(Ink)) {
         if (maxHeight < 300.dp) {
-            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(26.dp)) {
+            LazyColumn(Modifier.fillMaxSize().focusRequester(entryFocusRequester), verticalArrangement = Arrangement.spacedBy(26.dp)) {
                 item {
                     Column(Modifier.padding(start = 34.dp, end = 34.dp, top = 26.dp)) {
                         Text("FOR ${profile.name.uppercase()}", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp)
@@ -265,7 +262,7 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
                     }
                 }
                 if (movies.isEmpty()) item { EmptyState("Building your library", "The demonstration catalogue will appear shortly.") }
-                rows.forEach { row -> item(key = row.title) { MovieRail(row, onMovie, { id -> selectedMovieId = id; selectedRowTitle = row.title }, compact = true, entryFocusRequester = if (row.title == entryRowTitle) entryFocusRequester else null) } }
+                rows.forEach { row -> item(key = row.title) { MovieRail(row, onMovie, { id -> selectedMovieId = id }, compact = true) } }
                 item { Spacer(Modifier.height(36.dp)) }
             }
         } else {
@@ -279,9 +276,9 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
                     if (preview != null) FeaturedBanner(preview, selectedMovieId != null, Modifier.height(if (compact) 150.dp else 190.dp))
                 }
                 Spacer(Modifier.height(if (compact) 10.dp else 18.dp))
-                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(26.dp)) {
+                LazyColumn(Modifier.weight(1f).focusRequester(entryFocusRequester), verticalArrangement = Arrangement.spacedBy(26.dp)) {
                     if (movies.isEmpty()) item { EmptyState("Building your library", "The demonstration catalogue will appear shortly.") }
-                    rows.forEach { row -> item(key = row.title) { MovieRail(row, onMovie, { id -> selectedMovieId = id; selectedRowTitle = row.title }, compact, entryFocusRequester = if (row.title == entryRowTitle) entryFocusRequester else null) } }
+                    rows.forEach { row -> item(key = row.title) { MovieRail(row, onMovie, { id -> selectedMovieId = id }, compact) } }
                     item { Spacer(Modifier.height(36.dp)) }
                 }
             }
@@ -365,7 +362,7 @@ fun BrowseScreen(movies: List<MovieEntity>, entryFocusRequester: FocusRequester,
     val columns = maxOf(1, ((maxWidth - 54.dp).value / 189f).toInt())
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
-        modifier = Modifier.fillMaxSize().background(Ink).focusRequester(entryFocusRequester).focusRestorer { FocusRequester.Default },
+        modifier = Modifier.fillMaxSize().background(Ink).focusRequester(entryFocusRequester),
         contentPadding = PaddingValues(start = 34.dp, end = 34.dp, top = 26.dp, bottom = 34.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -379,12 +376,12 @@ fun BrowseScreen(movies: List<MovieEntity>, entryFocusRequester: FocusRequester,
             }
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(Modifier.fillMaxWidth().focusGroup().focusRestorer { genreFocus }.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            Row(Modifier.fillMaxWidth().focusGroup().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 (listOf("All") + DemoCatalogue.genres).forEachIndexed { index, item -> FocusAction(item, { genre = item }, modifier = if (index == 0) Modifier.focusRequester(genreFocus) else Modifier, selected = genre == item, quiet = true, menuOnLeft = index == 0) }
             }
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(Modifier.fillMaxWidth().focusGroup().focusRestorer { controlsFocus }.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().focusGroup().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FocusAction("Year: $year", { year = years[(years.indexOf(year) + 1) % years.size] }, modifier = Modifier.focusRequester(controlsFocus), quiet = true, menuOnLeft = true)
                 FocusAction("Sort: $sort", { sort = sorts[(sorts.indexOf(sort) + 1) % sorts.size] }, quiet = true)
                 FocusAction("Clear filters", { language = "All"; genre = "All"; year = "All"; sort = "Newest" }, quiet = true)
@@ -421,7 +418,7 @@ fun MyListScreen(profile: ProfileEntity?, movies: List<MovieEntity>, entryFocusR
 private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifier: Modifier = Modifier, entryFocusRequester: FocusRequester? = null) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val columns = maxOf(1, ((maxWidth.value + 14f) / 189f).toInt())
-        LazyVerticalGrid(columns = GridCells.Fixed(columns), modifier = Modifier.fillMaxSize().then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier).focusRestorer { FocusRequester.Default }, horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(17.dp)) {
+        LazyVerticalGrid(columns = GridCells.Fixed(columns), modifier = Modifier.fillMaxSize().then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(17.dp)) {
             itemsIndexed(movies, key = { _, movie -> movie.id }) { index, movie ->
                 MovieCard(movie, { onMovie(movie.id) }, menuOnLeft = index % columns == 0)
             }

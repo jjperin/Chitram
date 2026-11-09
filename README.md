@@ -13,7 +13,7 @@ The [project specification](docs/PROJECT_SPEC.md) records product requirements. 
 - Profile create/edit/select with primary and secondary language choices and favourite genres. Languages: Tamil, Hindi, Telugu, Malayalam, Kannada, Bengali, Marathi and Punjabi.
 - Profile-driven home rows, local title search, browse filters and sorting, per-profile My List, and details with an honest playback placeholder. Home has a separate, clearly labelled rail for Einthusan listings; unverified listings are excluded from recommendations.
 - A quick background check of recent listings after 24 hours, a checkpointed full alphabetic scan after about seven days, and manual Check new / Full scan actions in Browse. Existing listings remain available if the network fails.
-- Conservative, on-demand TMDB matching when a listing's details are opened. Matched posters, backdrops, genres and community ratings are cached locally; unmatched listings retain their source description and a clean placeholder. Coil's disk cache is capped at about 250 MB. About & credits shows TMDB's approved logo and API notice.
+- Conservative, on-demand TMDB matching for visible listings and detail screens. A bounded queue loads metadata as cards appear, and repeated title/year lookups share their result during the session. Matched posters, backdrops, genres and community ratings are cached locally; unmatched listings retain their source description and a clean placeholder. Coil's disk cache is capped at about 250 MB. About & credits shows TMDB's approved logo and API notice.
 - Deterministic local recommendation ranking is currently limited to demos until real listing playback availability is independently confirmed.
 
 ## Build

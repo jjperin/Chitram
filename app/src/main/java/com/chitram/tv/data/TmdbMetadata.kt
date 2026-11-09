@@ -28,9 +28,28 @@ fun chooseTmdbMatch(title: String, year: Int, language: String, candidates: List
 }
 
 class TmdbMetadata(private val token: String) {
+    private val searchCache = LinkedHashMap<String, List<TmdbMatch>>(64, 0.75f, true)
+    private val genreCache = LinkedHashMap<Long, String>(64, 0.75f, true)
+
+    @Synchronized
     fun search(title: String, year: Int, language: String): TmdbMatch? {
         if (token.isBlank() || year <= 0) return null
-        val query = URLEncoder.encode(catalogueSearchTitle(title), "UTF-8")
+        val searchTitle = catalogueSearchTitle(title)
+        val key = "${searchTitle.lowercase()}|$year"
+        val candidates = searchCache[key] ?: fetchCandidates(searchTitle, year).also {
+            searchCache[key] = it
+            if (searchCache.size > 64) searchCache.remove(searchCache.keys.first())
+        }
+        val match = chooseTmdbMatch(title, year, language, candidates) ?: return null
+        val genres = genreCache[match.id] ?: runCatching { fetchGenres(match.id) }.getOrNull()?.also {
+            genreCache[match.id] = it
+            if (genreCache.size > 64) genreCache.remove(genreCache.keys.first())
+        }
+        return match.copy(genres = genres.orEmpty())
+    }
+
+    private fun fetchCandidates(title: String, year: Int): List<TmdbMatch> {
+        val query = URLEncoder.encode(title, "UTF-8")
         val url = URL("https://api.themoviedb.org/3/search/movie?query=$query&year=$year&include_adult=false")
         val connection = url.openConnection() as HttpURLConnection
         connection.connectTimeout = 10_000
@@ -53,9 +72,7 @@ class TmdbMetadata(private val token: String) {
                     backdropPath = item.optString("backdrop_path").takeIf { it.startsWith("/") }
                 )
             }
-            chooseTmdbMatch(title, year, language, candidates)?.let { match ->
-                runCatching { fetchGenres(match.id) }.getOrNull()?.let { match.copy(genres = it) } ?: match
-            }
+            candidates
         } finally { connection.disconnect() }
     }
 

@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +39,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -55,6 +55,7 @@ import com.chitram.tv.data.ProfileEntity
 import com.chitram.tv.domain.HomeRow
 
 val LocalMenuFocusRequester = staticCompositionLocalOf<FocusRequester?> { null }
+val LocalArtworkPrefetch = staticCompositionLocalOf<((Long) -> Unit)?> { null }
 
 @Composable
 fun FocusAction(
@@ -96,6 +97,10 @@ fun Avatar(profile: ProfileEntity?, modifier: Modifier = Modifier, symbolSize: T
 
 @Composable
 fun MovieArtwork(movie: MovieEntity, modifier: Modifier = Modifier, landscape: Boolean = false, small: Boolean = false) {
+    val prefetch = LocalArtworkPrefetch.current
+    LaunchedEffect(movie.id) {
+        if (!movie.isDemo && movie.posterUrl == null && movie.tmdbCheckedAtMs == 0L) prefetch?.invoke(movie.id)
+    }
     val color = Color(movie.artColor.toInt())
     val shape = RoundedCornerShape(8.dp)
     Box(
@@ -152,7 +157,7 @@ fun MovieRail(row: HomeRow, onMovie: (Long) -> Unit, onMovieFocus: (Long) -> Uni
             Text("${row.movies.size} films", color = Muted, fontSize = 12.sp)
         }
         LazyRow(
-            modifier = Modifier.then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier).focusRestorer { firstMovieFocus },
+            modifier = Modifier.then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier),
             contentPadding = PaddingValues(horizontal = 34.dp),
             horizontalArrangement = Arrangement.spacedBy(17.dp)
         ) {

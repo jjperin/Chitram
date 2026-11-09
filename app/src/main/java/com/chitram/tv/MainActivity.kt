@@ -31,6 +31,7 @@ import com.chitram.tv.ui.DetailsScreen
 import com.chitram.tv.ui.HomeScreen
 import com.chitram.tv.ui.Ink
 import com.chitram.tv.ui.LocalMenuFocusRequester
+import com.chitram.tv.ui.LocalArtworkPrefetch
 import com.chitram.tv.ui.MyListScreen
 import com.chitram.tv.ui.ProfileEditorScreen
 import com.chitram.tv.ui.ProfilePickerScreen
@@ -108,7 +109,8 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                         modifier = Modifier.width(202.dp)
                     )
                     Box(Modifier.weight(1f)) {
-                        CompositionLocalProvider(LocalMenuFocusRequester provides selectedMenuItem) {
+                        CompositionLocalProvider(LocalMenuFocusRequester provides selectedMenuItem,
+                            LocalArtworkPrefetch provides vm::prefetchArtwork) {
                             when (route) {
                                 "home" -> HomeScreen(profile, homeMovies, progress, contentEntry, onMovie = { openMain("details/$it") })
                                 "search" -> SearchScreen(searchQuery, searchResults, vm::setSearchQuery, contentEntry, onMovie = { openMain("details/$it") })
@@ -125,7 +127,9 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
         composable("details/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
             val movie = movies.find { it.id == entry.arguments?.getLong("id") }
             LaunchedEffect(movie?.id) { movie?.id?.let(vm::enrichMovie) }
-            DetailsScreen(movie, movie?.id in savedIds, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } }, onBack = { nav.popBackStack() })
+            CompositionLocalProvider(LocalArtworkPrefetch provides vm::prefetchArtwork) {
+                DetailsScreen(movie, movie?.id in savedIds, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } }, onBack = { nav.popBackStack() })
+            }
         }
     }
 }

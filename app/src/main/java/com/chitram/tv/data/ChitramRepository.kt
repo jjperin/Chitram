@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 class ChitramRepository(private val db: ChitramDatabase) {
     private val catalogue = EinthusanCatalogue()
     private val syncMutex = Mutex()
+    private val tmdbMutex = Mutex()
     private val tmdb = TmdbMetadata(com.chitram.tv.BuildConfig.TMDB_READ_TOKEN)
     val profiles: Flow<List<ProfileEntity>> = db.profiles().observeAll()
     val movies: Flow<List<MovieEntity>> = db.movies().observeAll()
@@ -37,11 +38,11 @@ class ChitramRepository(private val db: ChitramDatabase) {
         else db.watchlist().insert(WatchlistEntity(profileId, movieId))
     }
 
-    suspend fun enrichFromTmdb(movieId: Long) {
-        val movie = db.movies().findById(movieId) ?: return
-        if (movie.isDemo || movie.sourceProvider != "einthusan") return
-        if (System.currentTimeMillis() - movie.tmdbCheckedAtMs < 30L * 24 * 60 * 60 * 1000) return
-        if (com.chitram.tv.BuildConfig.TMDB_READ_TOKEN.isBlank()) return
+    suspend fun enrichFromTmdb(movieId: Long) = tmdbMutex.withLock {
+        val movie = db.movies().findById(movieId) ?: return@withLock
+        if (movie.isDemo || movie.sourceProvider != "einthusan") return@withLock
+        if (System.currentTimeMillis() - movie.tmdbCheckedAtMs < 30L * 24 * 60 * 60 * 1000) return@withLock
+        if (com.chitram.tv.BuildConfig.TMDB_READ_TOKEN.isBlank()) return@withLock
         val match = tmdb.search(movie.title, movie.releaseYear, movie.language)
         val current = db.movies().findById(movieId) ?: return
         db.movies().update(current.copy(

@@ -38,12 +38,14 @@ This version-controlled specification summarizes the owner's initial project bri
 - Use Coil for automatic on-demand image loading and caching. Store TMDB poster and backdrop **URLs** in Room; store image bytes in Coil's disk cache, not in Room.
 - Target an approximately **250 MB** disk cache. Display cached images promptly, fetch and cache missing images as needed, and use the cache's least-recently-used eviction when full.
 - Load images lazily as rails and cards become visible. Request appropriately sized images and use bounded memory caching to limit bandwidth, storage and memory use.
+- When a visible listing lacks artwork, queue a small number of on-demand TMDB metadata lookups so artwork can appear before the detail screen opens. Reuse results for the same title and year, and never fetch metadata or images for the whole catalogue at once.
 - Show a clean placeholder for absent or failed images. Do not pre-download artwork for every catalogue title.
 - Preserve the disk cache across app launches. Avoid repeated metadata requests when cached metadata is still valid.
 
 ## Performance and storage target
 
 - Keep D-pad navigation, scrolling and screen changes responsive while catalogue sync and image requests run in the background.
+- Avoid focus restoration paths that target lazy-list items after they detach; keep Home, Browse and Search stable during rapid D-pad movement so the app does not return to the Google TV launcher.
 - Aim for roughly **300–400 MB of total app storage**, including APK, metadata database and image cache, subject to measurements on the target Sony Google TV. Adjust cache sizing if measured storage or device limits require it.
 - Avoid unnecessary network calls and full metadata re-downloads. Offline or incomplete metadata must produce useful screens, not crashes or blank layouts.
 
