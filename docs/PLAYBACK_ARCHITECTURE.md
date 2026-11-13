@@ -2,6 +2,14 @@
 
 Status: **test player and source boundary implemented; automatic Einthusan resolution unverified** (13 November 2026).
 
+## Debug-only official web player experiment
+
+`WebPlaybackActivity` is separate from Media3 and `VideoUrlResolver`. On a real listing's Details screen, **Test Web Playback** appears in debug builds if Room has an HTTPS `einthusan.tv/movie/watch/{sourceId}/` page URL matching that exact listing. The activity reads the record from Room again before loading it. It uses one Android WebView with JavaScript and DOM storage, lets the website operate its own player/session, and supports HTML5 fullscreen through `WebChromeClient` custom views. Back leaves fullscreen first, then page history, then returns to Details. The small diagnostic header reports page load, fullscreen request and general failures without showing URLs or session data.
+
+Remote navigability, actual play/pause/seek, login, video start and Sony TV compatibility are **unverified**. The website may reject WebView, require touch controls, redirect, need a separate login, or disallow third-party app use. A successful page load does not prove playback. WebView does not provide Chitram with a supported progress signal, so it does not write to Room progress or make Continue Watching claims. No signed URL or cookie is extracted, and no provider ads are filtered. The browser blocks insecure navigation and mixed content, disallows file/content access, and grants no page permission or JavaScript bridge.
+
+The owner asked for physical Sony Google TV testing and explicitly asked that the emulator not be run. See `README.md` for the TV test checklist. Einthusan's [terms](https://einthusan.tv/terms/) restrict player use in third-party applications; this experiment does not establish permission for distribution or general playback.
+
 ## Existing app path
 
 Room stores source movie IDs and page URLs separately from TMDB metadata and viewing progress. Details shows Play only for the one source ID configured in ignored local `playback.properties`. `VideoUrlResolver` runs at Play time; the current `ConfiguredTestVideoUrlResolver` accepts an explicit test URL, validates HTTPS, MP4/HLS format and an `e` expiry when present, then passes the source to Media3. The player supports loading, retry and error states, D-pad controls and per-profile progress. Signed source URLs are not stored in Room or logged. Debug builds may embed the locally configured test URL; release builds omit it.

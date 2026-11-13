@@ -427,7 +427,8 @@ private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifi
 }
 
 @Composable
-fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit, onPlay: () -> Unit, onBack: () -> Unit) {
+fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit, onPlay: () -> Unit,
+    onTestWebPlayback: () -> Unit, onBack: () -> Unit) {
     if (movie == null) { EmptyState("Film unavailable", "This film is not in the local catalogue."); return }
     Column(Modifier.fillMaxSize().background(Ink).verticalScroll(rememberScrollState()).padding(horizontal = 50.dp, vertical = 34.dp)) {
         FocusAction("←  Back", onBack, quiet = true)
@@ -451,6 +452,9 @@ fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit
                 Spacer(Modifier.height(28.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (playable) FocusAction("Play test stream", onPlay, selected = true)
+                    if (com.chitram.tv.BuildConfig.DEBUG && com.chitram.tv.data.verifiedWebPlaybackPage(movie) != null) {
+                        FocusAction("Test Web Playback", onTestWebPlayback, quiet = true)
+                    }
                     FocusAction(if (inList) "Remove from My List" else "Add to My List", onToggleList, quiet = true)
                 }
                 if (!playable && !movie.isDemo) Text("Playback source has not been verified for this listing.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 12.dp))

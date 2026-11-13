@@ -9,6 +9,7 @@ Chitram is an **existing** Kotlin Android TV app. Continue development in this r
 - Resolve a source only when Play is pressed, validate its scheme, format and known expiry, and pass it to Media3. Never store signed video URLs in Room, log URLs or cookies, or download movie files.
 - Preserve the provider's authentication, region rules, protection and advertising. Do not add a backend or browser automation merely to imitate the reference projects. An automated Einthusan resolver requires a supported mechanism and authorization for playback in Chitram.
 - A single explicitly supplied source can be tested with the ignored local `playback.properties` debug configuration. That is a test adapter, not catalogue-wide playback.
+- A separate debug-only WebView experiment opens the stored official watch page without inspecting its player requests. It does not replace Media3, resolve native stream URLs, or save WebView progress. Its playability and Sony TV remote behavior are unverified; see [docs/PLAYBACK_ARCHITECTURE.md](docs/PLAYBACK_ARCHITECTURE.md).
 
 ## Next playback milestone
 

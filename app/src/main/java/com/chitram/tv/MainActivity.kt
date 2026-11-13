@@ -141,6 +141,12 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                             .putExtra(PlayerActivity.PROFILE_ID, viewer.id)
                             .putExtra(PlayerActivity.TITLE, source.title)
                             .putExtra(PlayerActivity.START_POSITION_MS, saved?.takeUnless { it.completed }?.positionMs ?: 0L))
+                    }, onTestWebPlayback = {
+                        val source = movie ?: return@DetailsScreen
+                        if (com.chitram.tv.BuildConfig.DEBUG && com.chitram.tv.data.verifiedWebPlaybackPage(source) != null) {
+                            context.startActivity(Intent(context, WebPlaybackActivity::class.java)
+                                .putExtra(WebPlaybackActivity.MOVIE_ID, source.id))
+                        }
                     }, onBack = { nav.popBackStack() })
             }
         }

@@ -26,6 +26,18 @@ gradlew.bat assembleDebug testDebugUnitTest
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Install it on a connected Android TV with `adb install -r app-debug.apk` from that output directory. On first launch, create a profile. Open a film's details to add it to My List. A Play test stream button appears only for the one source ID configured below.
 
+## Test the official web player on Sony Google TV
+
+Connect the TV to this PC through ADB, then install the current **debug** APK as an update from PowerShell:
+
+```powershell
+& 'E:\ChitramAndroidSdk\platform-tools\adb.exe' install -r 'C:\Users\Jake\Documents\ChatGPT\chitram\app\build\outputs\apk\debug\app-debug.apk'
+```
+
+Use the same signing key and package ID so local profiles and catalogue data remain. If ADB reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, stop and report it rather than uninstalling Chitram. Open Chitram → choose your profile → Browse or Search → open an Einthusan listing → **Test Web Playback**. This option appears only if the listing has its official watch-page URL in the local catalogue. No manually copied MP4 URL is needed for this experiment.
+
+The diagnostic header reports whether the page loaded and whether HTML5 fullscreen was requested. With the Sony remote, try starting the website's video, entering fullscreen, OK/Play-Pause, seeking with Left/Right, exiting fullscreen with Back, and returning to Details with Back. Record which actions work, whether login or advertising appears, any error shown, and whether the TV player remains responsive. A loaded page alone is not a playback success. Web viewing does **not** update Chitram's Continue Watching because no supported progress signal is available. The website may not support D-pad input or playback inside WebView; do not assume either until tested. The Android TV emulator is not required for this test.
+
 ## Optional playback test
 
 Create an ignored `playback.properties` file in the project root with `sourceId=THE_CATALOGUE_SOURCE_ID` and `url=YOUR_AUTHORIZED_HTTPS_STREAM_URL`, then rebuild the debug APK. Only the matching listing gets a Play test stream button. The isolated resolver accepts HTTPS MP4 or HLS, rejects a known expired link, and passes it to Media3 with loading, retry and error states. The player offers D-pad controls, Back and per-profile resume. The URL is embedded in the **private debug APK**, so do not share that APK while a signed link is valid. Release builds omit the test URL. Temporary signed links stop working after their expiry; this setup does not resolve streams for the rest of the catalogue. See [playback architecture](docs/PLAYBACK_ARCHITECTURE.md).
