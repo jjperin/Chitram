@@ -31,19 +31,22 @@ class TmdbMetadata(private val token: String) {
     private val searchCache = LinkedHashMap<String, List<TmdbMatch>>(64, 0.75f, true)
     private val genreCache = LinkedHashMap<Long, String>(64, 0.75f, true)
 
-    @Synchronized
     fun search(title: String, year: Int, language: String): TmdbMatch? {
         if (token.isBlank() || year <= 0) return null
         val searchTitle = catalogueSearchTitle(title)
         val key = "${searchTitle.lowercase()}|$year"
-        val candidates = searchCache[key] ?: fetchCandidates(searchTitle, year).also {
-            searchCache[key] = it
-            if (searchCache.size > 64) searchCache.remove(searchCache.keys.first())
+        val candidates = synchronized(searchCache) { searchCache[key] } ?: fetchCandidates(searchTitle, year).also {
+            synchronized(searchCache) {
+                searchCache[key] = it
+                if (searchCache.size > 64) searchCache.remove(searchCache.keys.first())
+            }
         }
         val match = chooseTmdbMatch(title, year, language, candidates) ?: return null
-        val genres = genreCache[match.id] ?: runCatching { fetchGenres(match.id) }.getOrNull()?.also {
-            genreCache[match.id] = it
-            if (genreCache.size > 64) genreCache.remove(genreCache.keys.first())
+        val genres = synchronized(genreCache) { genreCache[match.id] } ?: runCatching { fetchGenres(match.id) }.getOrNull()?.also {
+            synchronized(genreCache) {
+                genreCache[match.id] = it
+                if (genreCache.size > 64) genreCache.remove(genreCache.keys.first())
+            }
         }
         return match.copy(genres = genres.orEmpty())
     }

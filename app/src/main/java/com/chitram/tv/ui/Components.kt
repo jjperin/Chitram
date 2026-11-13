@@ -108,7 +108,7 @@ fun MovieArtwork(movie: MovieEntity, modifier: Modifier = Modifier, landscape: B
             Brush.linearGradient(listOf(color, color.copy(red = color.red * .55f, green = color.green * .55f, blue = color.blue * .55f), Ink))
         )
     ) {
-        val url = if (landscape) movie.backdropUrl else movie.posterUrl
+        val url = if (landscape) movie.backdropUrl ?: movie.posterUrl else movie.posterUrl ?: movie.backdropUrl
         if (url != null) AsyncImage(model = url, contentDescription = "Artwork for ${movie.title}", modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
         else if (movie.title == "After the Festival") Image(painterResource(R.drawable.after_the_festival), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink.copy(alpha = .82f)), startY = 70f)))

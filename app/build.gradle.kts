@@ -10,6 +10,11 @@ val tmdbConfig = Properties().apply {
     val local = rootProject.file("tmdb.properties")
     if (local.exists()) local.inputStream().use { load(it) }
 }
+val playbackConfig = Properties().apply {
+    val local = rootProject.file("playback.properties")
+    if (local.exists()) local.inputStream().use { load(it) }
+}
+fun buildString(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
 android {
     namespace = "com.chitram.tv"
@@ -26,7 +31,15 @@ android {
     }
 
     buildTypes {
-        release { isMinifyEnabled = false }
+        getByName("debug") {
+            buildConfigField("String", "TEST_PLAYBACK_SOURCE_ID", buildString(playbackConfig.getProperty("sourceId", "")))
+            buildConfigField("String", "TEST_PLAYBACK_URL", buildString(playbackConfig.getProperty("url", "")))
+        }
+        release {
+            isMinifyEnabled = false
+            buildConfigField("String", "TEST_PLAYBACK_SOURCE_ID", "\"\"")
+            buildConfigField("String", "TEST_PLAYBACK_URL", "\"\"")
+        }
     }
 
     compileOptions {
@@ -56,6 +69,8 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 

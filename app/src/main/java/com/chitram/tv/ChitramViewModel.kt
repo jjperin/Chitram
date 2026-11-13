@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import coil.Coil
+import coil.request.ImageRequest
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class ChitramViewModel(application: Application) : AndroidViewModel(application) {
@@ -56,10 +58,12 @@ class ChitramViewModel(application: Application) : AndroidViewModel(application)
     private val artworkQueue = Channel<Long>(capacity = 6, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            for (movieId in artworkQueue) {
-                try { repository.enrichFromTmdb(movieId) }
-                catch (_: Exception) { /* Keep the local listing and placeholder when TMDB is unavailable. */ }
+        repeat(3) {
+            viewModelScope.launch(Dispatchers.IO) {
+                for (movieId in artworkQueue) {
+                    try { repository.enrichFromTmdb(movieId) }
+                    catch (_: Exception) { /* Keep the local listing and placeholder when TMDB is unavailable. */ }
+                }
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -72,7 +76,19 @@ class ChitramViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun selectProfile(id: Long) { activeProfileId.value = id }
+    fun selectProfile(id: Long) {
+        activeProfileId.value = id
+        val primary = profiles.value.firstOrNull { it.id == id }?.primaryLanguage ?: return
+        val firstListings = movies.value.asSequence().filter { !it.isDemo && it.language == primary }
+            .sortedByDescending { it.releaseYear }.take(6).toList()
+        firstListings.filter { it.posterUrl == null && it.tmdbCheckedAtMs == 0L }.take(4)
+            .forEach { artworkQueue.trySend(it.id) }
+        val context = getApplication<Application>()
+        val loader = Coil.imageLoader(context)
+        firstListings.mapNotNull { it.posterUrl }.take(4).forEach { url ->
+            loader.enqueue(ImageRequest.Builder(context).data(url).size(342, 513).build())
+        }
+    }
     fun setSearchQuery(query: String) { searchQuery.value = query }
     fun prefetchArtwork(movieId: Long) { artworkQueue.trySend(movieId) }
 

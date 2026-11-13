@@ -1,6 +1,7 @@
 package com.chitram.tv
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +49,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
+    val context = LocalContext.current
     val nav = rememberNavController()
     val profiles by vm.profiles.collectAsStateWithLifecycle()
     val profilesLoaded by vm.profilesLoaded.collectAsStateWithLifecycle()
@@ -128,7 +131,17 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
             val movie = movies.find { it.id == entry.arguments?.getLong("id") }
             LaunchedEffect(movie?.id) { movie?.id?.let(vm::enrichMovie) }
             CompositionLocalProvider(LocalArtworkPrefetch provides vm::prefetchArtwork) {
-                DetailsScreen(movie, movie?.id in savedIds, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } }, onBack = { nav.popBackStack() })
+                DetailsScreen(movie, movie?.id in savedIds, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } },
+                    onPlay = {
+                        val source = movie ?: return@DetailsScreen
+                        val viewer = profile ?: return@DetailsScreen
+                        val saved = progress.firstOrNull { it.movieId == source.id }
+                        context.startActivity(Intent(context, PlayerActivity::class.java)
+                            .putExtra(PlayerActivity.MOVIE_ID, source.id)
+                            .putExtra(PlayerActivity.PROFILE_ID, viewer.id)
+                            .putExtra(PlayerActivity.TITLE, source.title)
+                            .putExtra(PlayerActivity.START_POSITION_MS, saved?.takeUnless { it.completed }?.positionMs ?: 0L))
+                    }, onBack = { nav.popBackStack() })
             }
         }
     }

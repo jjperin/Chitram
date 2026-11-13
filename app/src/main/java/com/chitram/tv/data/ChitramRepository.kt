@@ -6,11 +6,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import java.util.Collections
 
 class ChitramRepository(private val db: ChitramDatabase) {
     private val catalogue = EinthusanCatalogue()
     private val syncMutex = Mutex()
-    private val tmdbMutex = Mutex()
+    private val tmdbPermits = Semaphore(3)
+    private val tmdbInFlight = Collections.synchronizedSet(mutableSetOf<Long>())
     private val tmdb = TmdbMetadata(com.chitram.tv.BuildConfig.TMDB_READ_TOKEN)
     val profiles: Flow<List<ProfileEntity>> = db.profiles().observeAll()
     val movies: Flow<List<MovieEntity>> = db.movies().observeAll()
@@ -31,6 +35,11 @@ class ChitramRepository(private val db: ChitramDatabase) {
     suspend fun updateProfile(profile: ProfileEntity) = db.profiles().update(profile)
     fun watchlist(profileId: Long) = db.watchlist().observeForProfile(profileId)
     fun progress(profileId: Long) = db.progress().observeForProfile(profileId)
+    suspend fun saveProgress(profileId: Long, movieId: Long, positionMs: Long, durationMs: Long) {
+        if (db.movies().findById(movieId) == null) return
+        db.progress().upsert(ProgressEntity(profileId, movieId, positionMs, durationMs,
+            durationMs > 0 && positionMs >= durationMs - 30_000, System.currentTimeMillis()))
+    }
     fun search(query: String) = db.movies().search(query)
 
     suspend fun toggleWatchlist(profileId: Long, movieId: Long) {
@@ -38,25 +47,32 @@ class ChitramRepository(private val db: ChitramDatabase) {
         else db.watchlist().insert(WatchlistEntity(profileId, movieId))
     }
 
-    suspend fun enrichFromTmdb(movieId: Long) = tmdbMutex.withLock {
-        val movie = db.movies().findById(movieId) ?: return@withLock
-        if (movie.isDemo || movie.sourceProvider != "einthusan") return@withLock
-        if (System.currentTimeMillis() - movie.tmdbCheckedAtMs < 30L * 24 * 60 * 60 * 1000) return@withLock
-        if (com.chitram.tv.BuildConfig.TMDB_READ_TOKEN.isBlank()) return@withLock
-        val match = tmdb.search(movie.title, movie.releaseYear, movie.language)
-        val current = db.movies().findById(movieId) ?: return
-        db.movies().update(current.copy(
-            tmdbCheckedAtMs = System.currentTimeMillis(),
-            tmdbId = match?.id ?: current.tmdbId,
-            posterUrl = match?.posterPath?.let { "https://image.tmdb.org/t/p/w342$it" } ?: current.posterUrl,
-            backdropUrl = match?.backdropPath?.let { "https://image.tmdb.org/t/p/w780$it" } ?: current.backdropUrl,
-            rating = match?.rating ?: current.rating,
-            ratingSource = if (match != null) "tmdb" else current.ratingSource,
-            popularity = match?.popularity ?: current.popularity,
-            genres = current.genres.ifBlank { match?.genres.orEmpty() },
-            releaseDate = match?.releaseDate ?: current.releaseDate,
-            synopsis = current.synopsis.ifBlank { match?.overview.orEmpty() }
-        ))
+    suspend fun enrichFromTmdb(movieId: Long) {
+        if (!tmdbInFlight.add(movieId)) return
+        try {
+            tmdbPermits.withPermit {
+                val movie = db.movies().findById(movieId) ?: return@withPermit
+                if (movie.isDemo || movie.sourceProvider != "einthusan") return@withPermit
+                if (System.currentTimeMillis() - movie.tmdbCheckedAtMs < 30L * 24 * 60 * 60 * 1000) return@withPermit
+                if (com.chitram.tv.BuildConfig.TMDB_READ_TOKEN.isBlank()) return@withPermit
+                val match = tmdb.search(movie.title, movie.releaseYear, movie.language)
+                val current = db.movies().findById(movieId) ?: return@withPermit
+                db.movies().update(current.copy(
+                    tmdbCheckedAtMs = System.currentTimeMillis(),
+                    tmdbId = match?.id ?: current.tmdbId,
+                    posterUrl = match?.posterPath?.let { "https://image.tmdb.org/t/p/w342$it" } ?: current.posterUrl,
+                    backdropUrl = match?.backdropPath?.let { "https://image.tmdb.org/t/p/w780$it" } ?: current.backdropUrl,
+                    rating = match?.rating ?: current.rating,
+                    ratingSource = if (match != null) "tmdb" else current.ratingSource,
+                    popularity = match?.popularity ?: current.popularity,
+                    genres = current.genres.ifBlank { match?.genres.orEmpty() },
+                    releaseDate = match?.releaseDate ?: current.releaseDate,
+                    synopsis = current.synopsis.ifBlank { match?.overview.orEmpty() }
+                ))
+            }
+        } finally {
+            tmdbInFlight.remove(movieId)
+        }
     }
 
     suspend fun refreshIfDue(report: (String) -> Unit) {

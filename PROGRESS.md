@@ -74,8 +74,15 @@ Implemented in source:
 
 ## Remaining work and known limitations
 
+### Artwork and playback test foundation — 13 November 2026
+
+- Landscape cards and the Home preview now fall back to an available poster when a backdrop is missing. Profile selection queues at most four missing first-screen TMDB matches and warms at most four known posters in Coil. Up to three metadata lookups can run concurrently, with duplicate in-flight movie IDs suppressed, while keeping the 250 MB disk cache and visible-card loading.
+- Added Media3 ExoPlayer and TV PlayerView for a single explicitly configured HTTPS test stream. The Play test stream button appears only on the matching catalogue source ID. Back returns to details; player errors are shown in-app; a known duration and position are saved by profile for resume. No video files are stored by Chitram.
+- The owner's supplied Bangalore Days signed URL was kept only in ignored `playback.properties` for a private debug build. A HEAD probe returned HTTP 200 and `video/mp4` on 13 November 2026. Its expiry means this is temporary and does not make other catalogue listings playable. The public downloader page exposes no documented playback API.
+- `assembleDebug testDebugUnitTest --offline` succeeded after the final artwork change (**20 JVM tests**). Runtime playback and D-pad controls were **not** tested: the emulator reported unavailable hardware acceleration and exited, and the owner then asked not to use the emulator. The physical Sony TV was not tested. Do not claim seamless artwork or playback without device measurement.
+
 - Test the full D-pad, Back and profile editing flows on the physical Sony TV. The emulator checks above cover the reported sidebar return path and short-screen visibility, but not every screen or physical TV overscan setting.
 - Verify actual playback access separately from catalogue listing and TMDB matching; do not present a listing as playable until that work is complete.
-- Add Media3 playback in its own milestone, with legitimate test media and actual TV validation.
+- Validate the Media3 test player on the target TV and obtain an authorized, durable source-resolution method before enabling Play across the catalogue. Do not infer or generate signed URLs from source IDs.
 - Keep adding explicit migrations before future Room schema changes; preserve profile and watchlist data on APK updates.
 - Validate offline refresh recovery, full image-cache eviction and storage/performance on the physical Sony TV.

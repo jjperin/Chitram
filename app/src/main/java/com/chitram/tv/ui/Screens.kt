@@ -293,8 +293,8 @@ private fun FeaturedBanner(movie: MovieEntity, selectedByFocus: Boolean, modifie
         val short = maxHeight < 170.dp
         if (movie.title == "After the Festival") {
             Image(painterResource(R.drawable.after_the_festival), contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
-        } else if (movie.backdropUrl != null) {
-            AsyncImage(model = movie.backdropUrl, contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+        } else if (movie.backdropUrl != null || movie.posterUrl != null) {
+            AsyncImage(model = movie.backdropUrl ?: movie.posterUrl, contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
         } else {
             Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Color(movie.artColor.toInt()), Panel, Ink))))
         }
@@ -427,8 +427,7 @@ private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifi
 }
 
 @Composable
-fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit, onBack: () -> Unit) {
-    var showPlaybackMessage by remember { mutableStateOf(false) }
+fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit, onPlay: () -> Unit, onBack: () -> Unit) {
     if (movie == null) { EmptyState("Film unavailable", "This film is not in the local catalogue."); return }
     Column(Modifier.fillMaxSize().background(Ink).verticalScroll(rememberScrollState()).padding(horizontal = 50.dp, vertical = 34.dp)) {
         FocusAction("←  Back", onBack, quiet = true)
@@ -436,7 +435,10 @@ fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit
         Row(horizontalArrangement = Arrangement.spacedBy(34.dp)) {
             MovieArtwork(movie, Modifier.width(246.dp).height(335.dp))
             Column(Modifier.weight(1f)) {
-                Text(if (movie.isDemo) "DEMO FILM" else "EINTHUSAN LISTING · PLAYBACK UNVERIFIED", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                val playable = com.chitram.tv.data.configuredTestPlaybackUrl(movie,
+                    com.chitram.tv.BuildConfig.TEST_PLAYBACK_SOURCE_ID,
+                    com.chitram.tv.BuildConfig.TEST_PLAYBACK_URL) != null
+                Text(if (movie.isDemo) "DEMO FILM" else if (playable) "EINTHUSAN LISTING · TEST STREAM CONFIGURED" else "EINTHUSAN LISTING · PLAYBACK UNVERIFIED", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 Spacer(Modifier.height(10.dp))
                 Text(movie.title, color = Cream, fontSize = 33.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(10.dp))
@@ -448,13 +450,10 @@ fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit
                 Text(movie.synopsis, color = Cream.copy(alpha = .85f), fontSize = 16.sp, lineHeight = 24.sp)
                 Spacer(Modifier.height(28.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (movie.isDemo) FocusAction("Play", { showPlaybackMessage = true }, selected = true)
+                    if (playable) FocusAction("Play test stream", onPlay, selected = true)
                     FocusAction(if (inList) "Remove from My List" else "Add to My List", onToggleList, quiet = true)
                 }
-                if (showPlaybackMessage) {
-                    Spacer(Modifier.height(16.dp))
-                    Text("Playback integration coming in a later milestone.", color = Gold, fontSize = 16.sp)
-                }
+                if (!playable && !movie.isDemo) Text("Playback source has not been verified for this listing.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 12.dp))
             }
         }
     }
