@@ -35,6 +35,7 @@ class ChitramRepository(private val db: ChitramDatabase) {
     suspend fun updateProfile(profile: ProfileEntity) = db.profiles().update(profile)
     fun watchlist(profileId: Long) = db.watchlist().observeForProfile(profileId)
     fun progress(profileId: Long) = db.progress().observeForProfile(profileId)
+    suspend fun findMovie(movieId: Long): MovieEntity? = db.movies().findById(movieId)
     suspend fun saveProgress(profileId: Long, movieId: Long, positionMs: Long, durationMs: Long) {
         if (db.movies().findById(movieId) == null) return
         db.progress().upsert(ProgressEntity(profileId, movieId, positionMs, durationMs,

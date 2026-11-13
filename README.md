@@ -28,7 +28,7 @@ The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Install
 
 ## Optional playback test
 
-Create an ignored `playback.properties` file in the project root with `sourceId=THE_CATALOGUE_SOURCE_ID` and `url=YOUR_AUTHORIZED_HTTPS_STREAM_URL`, then rebuild the debug APK. Only the matching listing gets a Play test stream button. The Media3 player offers D-pad controls, Back, error feedback and per-profile resume. The URL is embedded in the **private debug APK**, so do not share that APK while a signed link is valid. Release builds omit the test URL. Temporary signed links stop working after their expiry; this setup does not resolve streams for the rest of the catalogue.
+Create an ignored `playback.properties` file in the project root with `sourceId=THE_CATALOGUE_SOURCE_ID` and `url=YOUR_AUTHORIZED_HTTPS_STREAM_URL`, then rebuild the debug APK. Only the matching listing gets a Play test stream button. The isolated resolver accepts HTTPS MP4 or HLS, rejects a known expired link, and passes it to Media3 with loading, retry and error states. The player offers D-pad controls, Back and per-profile resume. The URL is embedded in the **private debug APK**, so do not share that APK while a signed link is valid. Release builds omit the test URL. Temporary signed links stop working after their expiry; this setup does not resolve streams for the rest of the catalogue. See [playback architecture](docs/PLAYBACK_ARCHITECTURE.md).
 
 ## Test on this PC
 

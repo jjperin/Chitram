@@ -81,6 +81,12 @@ Implemented in source:
 - The owner's supplied Bangalore Days signed URL was kept only in ignored `playback.properties` for a private debug build. A HEAD probe returned HTTP 200 and `video/mp4` on 13 November 2026. Its expiry means this is temporary and does not make other catalogue listings playable. The public downloader page exposes no documented playback API.
 - `assembleDebug testDebugUnitTest --offline` succeeded after the final artwork change (**20 JVM tests**). Runtime playback and D-pad controls were **not** tested: the emulator reported unavailable hardware acceleration and exited, and the owner then asked not to use the emulator. The physical Sony TV was not tested. Do not claim seamless artwork or playback without device measurement.
 
+### Playback resolver research and boundary — 13 November 2026
+
+- Reviewed the Stremio addon and EinthuBot source. Both rely on player-provided link fields rather than calculating signatures. Stremio uses Node/Puppeteer or a page-attribute fallback; EinthuBot uses a Premium session and a Python/Docker download workflow. Current watch-page compatibility and permissions for Chitram remain unverified. Findings and links are recorded in [docs/PLAYBACK_ARCHITECTURE.md](docs/PLAYBACK_ARCHITECTURE.md).
+- Added a Play-time `VideoUrlResolver` interface around the existing explicit debug test source. It validates HTTPS, MP4/HLS format and a known `e` expiry. Media3 now includes HLS support, shows source-loading and playback-error states, and offers retry. The player looks up its movie from Room before resolving; no expiring URL is saved in Room or logged.
+- `assembleDebug testDebugUnitTest` passed with **21 JVM tests**. The emulator was not used at the owner's request. No automatic Einthusan extraction or end-to-end playback, seeking, resume or Sony TV test was performed. Catalogue-wide playback remains blocked on a supported, authorised fresh-source mechanism.
+
 - Test the full D-pad, Back and profile editing flows on the physical Sony TV. The emulator checks above cover the reported sidebar return path and short-screen visibility, but not every screen or physical TV overscan setting.
 - Verify actual playback access separately from catalogue listing and TMDB matching; do not present a listing as playable until that work is complete.
 - Validate the Media3 test player on the target TV and obtain an authorized, durable source-resolution method before enabling Play across the catalogue. Do not infer or generate signed URLs from source IDs.
