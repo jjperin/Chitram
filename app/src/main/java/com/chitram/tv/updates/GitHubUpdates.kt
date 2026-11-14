@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 data class AvailableUpdate(val versionCode: Int, val downloadUrl: String, val sha256: String, val size: Long)
+class NoPublishedRelease : Exception()
 
 internal fun parseRelease(json: String, installedVersion: Int): AvailableUpdate? {
     val release = JSONObject(json)
@@ -47,7 +48,7 @@ class GitHubUpdates(private val context: Context) {
             setRequestProperty("User-Agent", "Chitram-Android-TV")
         }
         try {
-            if (connection.responseCode == 404) return@withContext null
+            if (connection.responseCode == 404) throw NoPublishedRelease()
             if (connection.responseCode != 200) throw IllegalStateException("GitHub returned ${connection.responseCode}")
             val json = connection.inputStream.bufferedReader().use { it.readText() }
             if (json.length > 1_000_000) throw IllegalStateException("Release response is too large")

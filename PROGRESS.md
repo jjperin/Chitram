@@ -5,7 +5,7 @@
 - Added a TV-focused Check for updates screen. It reads the latest public GitHub Release, compares integer `vN` tags to the installed version code, verifies the selected APK's SHA-256, length, package and version, and opens Android's installer. Android may ask the user to allow installs from Chitram and to approve each update.
 - Added an ignored local release signing key and a GitHub Actions release workflow that can publish signed APKs from `main` once its four signing secrets are configured. The workflow skips publishing while they are absent. Version codes increase with workflow run numbers.
 - Public release builds omit the private TMDB token and debug playback URL. Cached metadata remains, but new TMDB enrichment will require a separate safe credential configuration in a later milestone. The existing debug APK and first release APK use different signing keys, so Android cannot update a debug installation with the release APK in place.
-- The updater and release build were compiled and JVM tested locally; GitHub publishing, Android installer flow, data retention and the Sony TV were not yet tested. See [README.md](README.md) for signing setup and first-install guidance.
+- The updater and release build compiled; `assembleDebug testDebugUnitTest assembleRelease --offline` passed with 26 JVM tests. GitHub publishing, Android installer flow, data retention and the Sony TV were not yet tested. See [README.md](README.md) for signing setup and first-install guidance.
 
 ## Session 1 foundation
 

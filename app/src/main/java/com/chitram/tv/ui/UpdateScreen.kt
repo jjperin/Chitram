@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chitram.tv.BuildConfig
 import com.chitram.tv.updates.GitHubUpdates
+import com.chitram.tv.updates.NoPublishedRelease
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -46,7 +47,8 @@ fun UpdateScreen(entryFocus: FocusRequester) {
                 try {
                     available = updater.check()
                     status = available?.let { "Version ${it.versionCode} is available." } ?: "You have the latest published version."
-                } catch (_: Exception) { status = "Could not check for updates. Check the connection and try again." }
+                } catch (_: NoPublishedRelease) { status = "No installable update has been published yet." }
+                catch (_: Exception) { status = "Could not check for updates. Check the connection and try again." }
                 busy = false
             }
         }, modifier = Modifier.focusRequester(entryFocus), quiet = true, menuOnLeft = true)
