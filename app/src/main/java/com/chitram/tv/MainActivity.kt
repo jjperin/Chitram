@@ -39,6 +39,7 @@ import com.chitram.tv.ui.ProfileEditorScreen
 import com.chitram.tv.ui.ProfilePickerScreen
 import com.chitram.tv.ui.SearchScreen
 import com.chitram.tv.ui.Sidebar
+import com.chitram.tv.ui.UpdateScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +98,7 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                 }
             }, onBack = { nav.popBackStack() }, error = error)
         }
-        listOf("home", "search", "browse", "mylist", "about").forEach { route ->
+        listOf("home", "search", "browse", "mylist", "about", "updates").forEach { route ->
             composable(route) {
                 val selectedMenuItem = remember(route) { FocusRequester() }
                 val contentEntry = remember(route) { FocusRequester() }
@@ -121,6 +122,7 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                                     syncMessage ?: syncState?.lastError, vm::refreshCatalogue, onMovie = { openMain("details/$it") })
                                 "mylist" -> MyListScreen(profile, savedMovies, contentEntry, onMovie = { openMain("details/$it") })
                                 "about" -> AboutScreen()
+                                "updates" -> UpdateScreen(contentEntry)
                             }
                         }
                     }

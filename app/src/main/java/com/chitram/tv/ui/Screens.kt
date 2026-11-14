@@ -111,6 +111,10 @@ fun Sidebar(
             modifier = Modifier.fillMaxWidth().then(if (current == "about") Modifier.focusRequester(selectedItemFocusRequester) else Modifier),
             selected = current == "about", quiet = true)
         Spacer(Modifier.height(8.dp))
+        FocusAction("Check for updates", { onNavigate("updates") },
+            modifier = Modifier.fillMaxWidth().then(if (current == "updates") Modifier.focusRequester(selectedItemFocusRequester) else Modifier),
+            selected = current == "updates", quiet = true)
+        Spacer(Modifier.height(8.dp))
     }
 }
 

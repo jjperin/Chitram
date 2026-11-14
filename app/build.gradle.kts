@@ -14,6 +14,11 @@ val playbackConfig = Properties().apply {
     val local = rootProject.file("playback.properties")
     if (local.exists()) local.inputStream().use { load(it) }
 }
+val signingConfigFile = rootProject.file("signing.properties")
+val signingConfig = Properties().apply {
+    if (signingConfigFile.exists()) signingConfigFile.inputStream().use { load(it) }
+}
+fun signingValue(key: String): String = System.getenv("CHITRAM_${key}") ?: signingConfig.getProperty(key, "")
 fun buildString(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
 android {
@@ -24,19 +29,32 @@ android {
         applicationId = "com.chitram.tv"
         minSdk = 23
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = providers.gradleProperty("chitramVersionCode").orNull?.toIntOrNull() ?: 1
+        versionName = providers.gradleProperty("chitramVersionName").orNull ?: "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "TMDB_READ_TOKEN", "\"${tmdbConfig.getProperty("readToken", "")}\"")
+    }
+
+    signingConfigs {
+        create("chitramRelease") {
+            val path = signingValue("KEYSTORE_PATH")
+            if (path.isNotBlank()) storeFile = rootProject.file(path)
+            storePassword = signingValue("STORE_PASSWORD")
+            keyAlias = signingValue("KEY_ALIAS")
+            keyPassword = signingValue("KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         getByName("debug") {
+            buildConfigField("String", "TMDB_READ_TOKEN", buildString(tmdbConfig.getProperty("readToken", "")))
             buildConfigField("String", "TEST_PLAYBACK_SOURCE_ID", buildString(playbackConfig.getProperty("sourceId", "")))
             buildConfigField("String", "TEST_PLAYBACK_URL", buildString(playbackConfig.getProperty("url", "")))
         }
         release {
             isMinifyEnabled = false
+            if (signingValue("KEYSTORE_PATH").isNotBlank()) signingConfig = signingConfigs.getByName("chitramRelease")
+            // Public GitHub APKs must never embed the owner's private token.
+            buildConfigField("String", "TMDB_READ_TOKEN", "\"\"")
             buildConfigField("String", "TEST_PLAYBACK_SOURCE_ID", "\"\"")
             buildConfigField("String", "TEST_PLAYBACK_URL", "\"\"")
         }

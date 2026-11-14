@@ -16,6 +16,14 @@ The [project specification](docs/PROJECT_SPEC.md) records product requirements. 
 - Conservative, on-demand TMDB matching for visible listings and detail screens. A bounded queue loads metadata as cards appear, and repeated title/year lookups share their result during the session. On profile selection, a few first-screen candidates are queued and known posters are warmed. Landscape cards use a poster if no backdrop exists. Matched posters, backdrops, genres and community ratings are cached locally; unmatched listings retain their source description and a clean placeholder. Coil's disk cache is capped at about 250 MB. About & credits shows TMDB's approved logo and API notice.
 - Deterministic local recommendation ranking is currently limited to demos until real listing playback availability is independently confirmed.
 
+## Updates from GitHub
+
+Open **Check for updates** in Chitram's side menu. It checks the latest public [GitHub Release](https://github.com/jjperin/Chitram/releases), downloads a newer APK, verifies it, and opens Android's installer. Approve the installation on the TV. Android may first ask you to allow Chitram to install apps; return to Chitram and press **Install update** again. Profiles, lists and the local catalogue remain when the installed app and release APK have the same package ID and signing key.
+
+Code pushed to GitHub is not itself an installable update. The `Publish TV APK` workflow builds a release for each push to `main` after these repository Actions secrets are set once: `CHITRAM_KEYSTORE_BASE64` (base64 of the ignored `signing/release.jks`), `CHITRAM_STORE_PASSWORD`, `CHITRAM_KEY_ALIAS`, and `CHITRAM_KEY_PASSWORD` (values from ignored `signing.properties`). Until they are configured, the workflow skips publishing. Keep a private backup of the keystore and passwords: losing them prevents future updates to installs signed with that key. Do not upload `signing.properties`, the keystore or a private debug APK to the public repo.
+
+The first signed release needs a one-time install. It cannot replace an older debug-signed build in place; Android will report a signature mismatch. Do not uninstall an existing app until its local data has been backed up or you accept losing it. Public release APKs omit the private TMDB token and temporary playback URL; new TMDB enrichment is unavailable in those builds until a safe on-device credential option is added. Debug builds remain private for playback experiments.
+
 ## Build
 
 Use a current Android Studio version or the Gradle wrapper. Install Android SDK Platform 34 and Build Tools 34.0.0, and use JDK 17 or 21. The old Android Studio installation originally present on this machine predates this build configuration; command-line Gradle is the verified path.
@@ -55,4 +63,4 @@ Create an ignored `tmdb.properties` file in the project root with `readToken=YOU
 - Einthusan listings are stored from public catalogue pages but playback access has not been verified. A recent-page check is not a complete change feed; a full scan takes longer and resumes from its stored checkpoint if interrupted.
 - TMDB matches require an exact normalized title and release year. Many listings will remain unmatched, and artwork is requested only when needed.
 - The Media3 player builds, but on-device playback and physical Sony TV behavior have not been validated. The owner's supplied signed URL answered HTTP 200 to a HEAD request on 13 November 2026; that is not a playback test. The owner asked not to use the emulator during this session.
-- Release signing and repeatable sideload updates are not configured yet.
+- The TV updater has not been exercised on a physical Sony TV. GitHub Actions publishing still needs the four signing secrets configured.

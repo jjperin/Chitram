@@ -5,6 +5,7 @@ This version-controlled specification summarizes the owner's initial project bri
 ## Product and architecture
 
 - Native Kotlin Android TV / Google TV app, initially tested on a Sony Google TV and distributed as a privately sideloaded APK.
+- Sideloaded installs should offer a D-pad operable in-app **Check for updates** action. It reads the latest public GitHub Release, offers only a higher version code, verifies the APK digest and package/version, and opens Android's installer for user approval. Preserve local app data through same-package, same-key updates. Source commits alone do not constitute installable updates; a signed APK release is required. Never publish an APK containing private TMDB credentials or temporary playback URLs.
 - Original, cinematic dark interface designed for D-pad/OK/Back navigation, with Home, Search, Browse and My List plus compact profile access.
 - Navigation must be predictable at TV sizes: Right from the active menu item enters that screen's first available control or restores the last focused content; Down into an unvisited film row or filter group starts at its first item; revisiting a row restores its prior card; Left moves through adjacent cards or filters before returning to the active menu item at the left edge. Never let a focus move silently skip to a later item because of screen geometry, and keep the focused item visible while scrolling.
 - Wait for locally saved profiles to load before offering Add profile on launch, so an early OK press cannot open profile creation by mistake.
