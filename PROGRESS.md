@@ -5,7 +5,7 @@
 - Enlarged the Home artwork preview, strengthened its contrast and title hierarchy, and added a Details action without implying that unverified listings play. Refined card placeholders and focus grouping. Details now has a wide hero, clear playback status, compact metadata and a related-films row.
 - Browse exposes all eight language chips, a direct Recently added action and a sort based on new `firstSeenAtMs` timestamps. Room migration 3→4 adds the column without deleting profiles, watchlists or catalogue entries; pre-existing films receive timestamp 0. Search and Browse preserve their query/filter and grid position across Details navigation; search text is isolated per profile for this session.
 - The updater now displays GitHub release notes and download percentage. GitHub release notes include the latest commit subject.
-- `assembleDebug testDebugUnitTest assembleRelease --offline` passed with 29 JVM tests after the search-state and browse-action edit. No emulator or Sony TV was used, so visual fit, D-pad paths, image timings and installer behaviour remain unverified on device. Playback availability is unchanged.
+- `assembleDebug testDebugUnitTest assembleRelease --offline` passed with 29 JVM tests after the final artwork fallback. GitHub Actions run 43553042355 also passed build and tests and published v9. The public `chitram-tv.apk` matched its SHA-256 digest, declares `com.chitram.tv` version code 9, and has the same release signing certificate as v8. No emulator or Sony TV was used, so visual fit, D-pad paths, image timings and installer behaviour remain unverified on device. Playback availability is unchanged.
 
 ### GitHub sideload updater — 14 November 2026
 
