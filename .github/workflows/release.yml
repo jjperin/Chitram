@@ -36,11 +36,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-        if: steps.signing.outputs.ready == 'true'
       - name: Install Android SDK 34
         if: steps.signing.outputs.ready == 'true'
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
       - name: Restore signing key
         if: steps.signing.outputs.ready == 'true'
         env:

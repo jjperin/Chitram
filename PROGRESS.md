@@ -6,6 +6,7 @@
 - Added an ignored local release signing key and a GitHub Actions release workflow that can publish signed APKs from `main` once its four signing secrets are configured. The workflow skips publishing while they are absent. Version codes increase with workflow run numbers.
 - Public release builds omit the private TMDB token and debug playback URL. Cached metadata remains, but new TMDB enrichment will require a separate safe credential configuration in a later milestone. The existing debug APK and first release APK use different signing keys, so Android cannot update a debug installation with the release APK in place.
 - The updater and release build compiled; `assembleDebug testDebugUnitTest assembleRelease --offline` passed with 26 JVM tests. GitHub publishing, Android installer flow, data retention and the Sony TV were not yet tested. See [README.md](README.md) for signing setup and first-install guidance.
+- The four repository Actions secrets were configured on 14 November 2026. The first dispatch reached GitHub but the third-party Android setup action failed on an obsolete SDK package; the workflow now uses the runner SDK directly. Publishing remains to be verified in the next run.
 
 ## Session 1 foundation
 
