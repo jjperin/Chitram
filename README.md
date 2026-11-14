@@ -15,10 +15,12 @@ The [project specification](docs/PROJECT_SPEC.md) records product requirements. 
 - A quick background check of recent listings after 24 hours, a checkpointed full alphabetic scan after about seven days, and manual Check new / Full scan actions in Browse. Existing listings remain available if the network fails.
 - Conservative, on-demand TMDB matching for visible listings and detail screens. A bounded queue loads metadata as cards appear, and repeated title/year lookups share their result during the session. On profile selection, a few first-screen candidates are queued and known posters are warmed. Landscape cards use a poster if no backdrop exists. Matched posters, backdrops, genres and community ratings are cached locally; unmatched listings retain their source description and a clean placeholder. Coil's disk cache is capped at about 250 MB. About & credits shows TMDB's approved logo and API notice.
 - Deterministic local recommendation ranking is currently limited to demos until real listing playback availability is independently confirmed.
+- Home features a larger focus-driven artwork preview and Details action. Film Details has a wide artwork hero and related films. Browse includes eight language chips and Recently added sorting; Search keeps its query and position when returning from a film.
 
 ## Updates from GitHub
 
 Open **Check for updates** in Chitram's side menu. It checks the latest public [GitHub Release](https://github.com/jjperin/Chitram/releases), downloads a newer APK, verifies it, and opens Android's installer. Approve the installation on the TV. Android may first ask you to allow Chitram to install apps; return to Chitram and press **Install update** again. Profiles, lists and the local catalogue remain when the installed app and release APK have the same package ID and signing key.
+The update screen shows release notes and download percentage before handing the verified APK to Android.
 
 The first signed release was published and its public APK verified on 14 November 2026. The update button's actual download and installation flow still needs testing on the Sony TV. The workflow publishes APKs for app/build changes pushed to `main`; documentation-only commits do not create a new APK.
 

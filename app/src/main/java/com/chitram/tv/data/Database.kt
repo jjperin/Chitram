@@ -36,7 +36,8 @@ data class MovieEntity(
     val releaseDate: String? = null,
     val ratingSource: String? = null,
     @ColumnInfo(defaultValue = "'demo'") val availability: String = "demo",
-    @ColumnInfo(defaultValue = "0") val tmdbCheckedAtMs: Long = 0
+    @ColumnInfo(defaultValue = "0") val tmdbCheckedAtMs: Long = 0,
+    @ColumnInfo(defaultValue = "0") val firstSeenAtMs: Long = 0
 )
 
 @Entity(tableName = "catalogue_sync")
@@ -127,7 +128,7 @@ interface ProgressDao {
 
 @Database(
     entities = [MovieEntity::class, ProfileEntity::class, WatchlistEntity::class, ProgressEntity::class, CatalogueSyncEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class ChitramDatabase : RoomDatabase() {
@@ -153,5 +154,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE movies ADD COLUMN tmdbCheckedAtMs INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE movies ADD COLUMN firstSeenAtMs INTEGER NOT NULL DEFAULT 0")
     }
 }

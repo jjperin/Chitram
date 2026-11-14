@@ -1,0 +1,405 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "fcae7d8f28ee28f7361ab68ba6b35612",
+    "entities": [
+      {
+        "tableName": "movies",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `language` TEXT NOT NULL, `releaseYear` INTEGER NOT NULL, `genres` TEXT NOT NULL, `rating` REAL NOT NULL, `popularity` REAL NOT NULL, `synopsis` TEXT NOT NULL, `posterUrl` TEXT, `backdropUrl` TEXT, `tmdbId` INTEGER, `sourceId` TEXT, `isDemo` INTEGER NOT NULL, `artColor` INTEGER NOT NULL, `sourceProvider` TEXT, `sourcePageUrl` TEXT, `releaseDate` TEXT, `ratingSource` TEXT, `availability` TEXT NOT NULL DEFAULT 'demo', `tmdbCheckedAtMs` INTEGER NOT NULL DEFAULT 0, `firstSeenAtMs` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "releaseYear",
+            "columnName": "releaseYear",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "genres",
+            "columnName": "genres",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "popularity",
+            "columnName": "popularity",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "synopsis",
+            "columnName": "synopsis",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "posterUrl",
+            "columnName": "posterUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "backdropUrl",
+            "columnName": "backdropUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tmdbId",
+            "columnName": "tmdbId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "sourceId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isDemo",
+            "columnName": "isDemo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "artColor",
+            "columnName": "artColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceProvider",
+            "columnName": "sourceProvider",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sourcePageUrl",
+            "columnName": "sourcePageUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "releaseDate",
+            "columnName": "releaseDate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ratingSource",
+            "columnName": "ratingSource",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "availability",
+            "columnName": "availability",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'demo'"
+          },
+          {
+            "fieldPath": "tmdbCheckedAtMs",
+            "columnName": "tmdbCheckedAtMs",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "firstSeenAtMs",
+            "columnName": "firstSeenAtMs",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_movies_language",
+            "unique": false,
+            "columnNames": [
+              "language"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movies_language` ON `${TABLE_NAME}` (`language`)"
+          },
+          {
+            "name": "index_movies_title",
+            "unique": false,
+            "columnNames": [
+              "title"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movies_title` ON `${TABLE_NAME}` (`title`)"
+          },
+          {
+            "name": "index_movies_releaseYear",
+            "unique": false,
+            "columnNames": [
+              "releaseYear"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_movies_releaseYear` ON `${TABLE_NAME}` (`releaseYear`)"
+          },
+          {
+            "name": "index_movies_sourceProvider_sourceId",
+            "unique": true,
+            "columnNames": [
+              "sourceProvider",
+              "sourceId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_movies_sourceProvider_sourceId` ON `${TABLE_NAME}` (`sourceProvider`, `sourceId`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "profiles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `avatar` TEXT NOT NULL, `primaryLanguage` TEXT NOT NULL, `secondaryLanguages` TEXT NOT NULL, `favouriteGenres` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatar",
+            "columnName": "avatar",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "primaryLanguage",
+            "columnName": "primaryLanguage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secondaryLanguages",
+            "columnName": "secondaryLanguages",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favouriteGenres",
+            "columnName": "favouriteGenres",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "watchlist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`profileId` INTEGER NOT NULL, `movieId` INTEGER NOT NULL, PRIMARY KEY(`profileId`, `movieId`))",
+        "fields": [
+          {
+            "fieldPath": "profileId",
+            "columnName": "profileId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movieId",
+            "columnName": "movieId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "profileId",
+            "movieId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_watchlist_movieId",
+            "unique": false,
+            "columnNames": [
+              "movieId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_watchlist_movieId` ON `${TABLE_NAME}` (`movieId`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "progress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`profileId` INTEGER NOT NULL, `movieId` INTEGER NOT NULL, `positionMs` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `completed` INTEGER NOT NULL, `updatedAtMs` INTEGER NOT NULL, PRIMARY KEY(`profileId`, `movieId`))",
+        "fields": [
+          {
+            "fieldPath": "profileId",
+            "columnName": "profileId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movieId",
+            "columnName": "movieId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "positionMs",
+            "columnName": "positionMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completed",
+            "columnName": "completed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMs",
+            "columnName": "updatedAtMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "profileId",
+            "movieId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_progress_movieId",
+            "unique": false,
+            "columnNames": [
+              "movieId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_progress_movieId` ON `${TABLE_NAME}` (`movieId`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "catalogue_sync",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `lastQuickAtMs` INTEGER NOT NULL, `lastFullAtMs` INTEGER NOT NULL, `lastError` TEXT, `lastAdded` INTEGER NOT NULL, `nextLanguage` INTEGER NOT NULL, `nextLetter` INTEGER NOT NULL, `nextPage` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastQuickAtMs",
+            "columnName": "lastQuickAtMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastFullAtMs",
+            "columnName": "lastFullAtMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "lastError",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastAdded",
+            "columnName": "lastAdded",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextLanguage",
+            "columnName": "nextLanguage",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextLetter",
+            "columnName": "nextLetter",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextPage",
+            "columnName": "nextPage",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fcae7d8f28ee28f7361ab68ba6b35612')"
+    ]
+  }
+}

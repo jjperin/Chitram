@@ -155,7 +155,8 @@ class ChitramRepository(private val db: ChitramDatabase) {
                 id = id, title = listing.title, language = listing.language,
                 releaseYear = listing.year, genres = "", rating = 0.0, popularity = 0.0,
                 synopsis = listing.synopsis, isDemo = false, artColor = 0xFF303B46,
-                sourceId = listing.sourceId, sourceProvider = "einthusan", availability = "listed"
+                sourceId = listing.sourceId, sourceProvider = "einthusan", availability = "listed",
+                firstSeenAtMs = System.currentTimeMillis()
             )).copy(
                 title = listing.title, language = listing.language,
                 releaseYear = listing.year.takeIf { it > 0 } ?: old?.releaseYear ?: 0,

@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
@@ -70,6 +72,7 @@ import com.chitram.tv.data.MovieEntity
 import com.chitram.tv.data.ProfileEntity
 import com.chitram.tv.data.ProgressEntity
 import com.chitram.tv.domain.homeRows
+import com.chitram.tv.domain.HomeRow
 import com.chitram.tv.domain.BrowseOptions
 import com.chitram.tv.domain.browseMovies
 import com.chitram.tv.domain.splitChoices
@@ -262,7 +265,7 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
                     Column(Modifier.padding(start = 34.dp, end = 34.dp, top = 26.dp)) {
                         Text("FOR ${profile.name.uppercase()}", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp)
                         Spacer(Modifier.height(13.dp))
-                        if (preview != null) FeaturedBanner(preview, selectedMovieId != null, Modifier.height(155.dp))
+                        if (preview != null) FeaturedBanner(preview, selectedMovieId != null, Modifier.height(190.dp)) { onMovie(preview.id) }
                     }
                 }
                 if (movies.isEmpty()) item { EmptyState("Building your library", "The demonstration catalogue will appear shortly.") }
@@ -277,7 +280,7 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
                         Text("FOR ${profile.name.uppercase()}", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp)
                         Spacer(Modifier.height(13.dp))
                     }
-                    if (preview != null) FeaturedBanner(preview, selectedMovieId != null, Modifier.height(if (compact) 150.dp else 190.dp))
+                    if (preview != null) FeaturedBanner(preview, selectedMovieId != null, Modifier.height(if (compact) 175.dp else 250.dp)) { onMovie(preview.id) }
                 }
                 Spacer(Modifier.height(if (compact) 10.dp else 18.dp))
                 LazyColumn(Modifier.weight(1f).focusRequester(entryFocusRequester), verticalArrangement = Arrangement.spacedBy(26.dp)) {
@@ -291,26 +294,31 @@ fun HomeScreen(profile: ProfileEntity?, movies: List<MovieEntity>, progress: Lis
 }
 
 @Composable
-private fun FeaturedBanner(movie: MovieEntity, selectedByFocus: Boolean, modifier: Modifier) {
-    BoxWithConstraints(modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Panel)) {
+private fun FeaturedBanner(movie: MovieEntity, selectedByFocus: Boolean, modifier: Modifier, onDetails: () -> Unit) {
+    BoxWithConstraints(modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Panel)) {
         val compact = maxWidth < 540.dp
-        val short = maxHeight < 170.dp
+        val short = maxHeight < 220.dp
+        Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Color(movie.artColor.toInt()), Panel, Ink))))
         if (movie.title == "After the Festival") {
             Image(painterResource(R.drawable.after_the_festival), contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
         } else if (movie.backdropUrl != null || movie.posterUrl != null) {
             AsyncImage(model = movie.backdropUrl ?: movie.posterUrl, contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
-        } else {
-            Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Color(movie.artColor.toInt()), Panel, Ink))))
         }
-        Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Ink.copy(alpha = .92f), Ink.copy(alpha = .60f), Color.Transparent))))
-        Column(Modifier.align(Alignment.CenterStart).widthIn(max = maxWidth * if (compact) .88f else .60f).padding(if (short) 8.dp else 18.dp)) {
-            Text("${if (selectedByFocus) "SELECTED" else "FEATURED"}  ·  ${if (movie.isDemo) "DEMO FILM" else "CATALOGUE LISTING"}", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            Spacer(Modifier.height(4.dp))
-            Text(movie.title, color = Cream, fontSize = if (short) 23.sp else if (compact) 26.sp else 29.sp, lineHeight = if (short) 26.sp else if (compact) 29.sp else 32.sp, fontWeight = FontWeight.Bold, maxLines = if (short) 1 else if (compact) 2 else 1, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(4.dp))
+        Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Ink.copy(alpha = .98f), Ink.copy(alpha = .76f), Ink.copy(alpha = .12f)))))
+        Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink.copy(alpha = .25f)))))
+        Column(Modifier.align(Alignment.CenterStart).widthIn(max = maxWidth * if (compact) .90f else .65f)
+            .padding(horizontal = if (short) 12.dp else 24.dp, vertical = if (short) 10.dp else 18.dp)) {
+            Text("${if (selectedByFocus) "IN FOCUS" else "FEATURED"}  ·  ${if (movie.isDemo) "DEMO FILM" else "EINTHUSAN LISTING"}", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(movie.title, color = Cream, fontSize = if (short) 24.sp else if (compact) 30.sp else 37.sp, lineHeight = if (short) 27.sp else if (compact) 33.sp else 40.sp, fontWeight = FontWeight.Bold, maxLines = if (short) 1 else 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(6.dp))
             Text(listOfNotNull(movie.releaseYear.takeIf { it > 0 }?.toString(), movie.language, movie.genres.takeIf { it.isNotBlank() }?.replace("|", " / ")).joinToString("   •   "), color = Cream.copy(alpha = .80f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(8.dp))
-            Text(movie.synopsis.takeIf { it.isNotBlank() }?.substringBefore('.')?.trimEnd()?.plus(".") ?: "Catalogue listing. Playback unverified.", color = Cream.copy(alpha = .75f), fontSize = 12.sp, lineHeight = 17.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (!short) {
+                Spacer(Modifier.height(8.dp))
+                Text(movie.synopsis.takeIf { it.isNotBlank() } ?: "Film information is being added.", color = Cream.copy(alpha = .78f), fontSize = 13.sp, lineHeight = 18.sp, maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
+            }
+            Spacer(Modifier.height(if (short) 7.dp else 8.dp))
+            FocusAction("Details", onDetails, menuOnLeft = true)
         }
     }
 }
@@ -320,8 +328,14 @@ fun SearchScreen(query: String, results: List<MovieEntity>, onQueryChange: (Stri
     val menuFocus = LocalMenuFocusRequester.current
     val keyboard = LocalSoftwareKeyboardController.current
     val resultsEntry = remember { FocusRequester() }
+    val gridState = rememberLazyGridState()
+    var previousQuery by rememberSaveable { mutableStateOf(query) }
+    LaunchedEffect(query) {
+        if (query != previousQuery) gridState.scrollToItem(0)
+        previousQuery = query
+    }
     Column(Modifier.fillMaxSize().background(Ink).padding(start = 34.dp, end = 34.dp, top = 26.dp)) {
-        ScreenHeading("Discover", "Search films", "Search locally saved catalogue listings and demos.")
+        ScreenHeading("Discover", "Search films", "Your search stays here when you open a film and come back.")
         OutlinedTextField(
             value = query, onValueChange = onQueryChange, label = { Text("Film title") }, singleLine = true,
             modifier = Modifier.fillMaxWidth().focusRequester(entryFocusRequester)
@@ -343,7 +357,7 @@ fun SearchScreen(query: String, results: List<MovieEntity>, onQueryChange: (Stri
         Spacer(Modifier.height(13.dp))
         if (results.isEmpty()) EmptyState(if (query.isBlank()) "Find a film" else "No matching films",
             if (query.isBlank()) "Enter a title to search your saved catalogue." else "Try another title.")
-        else MovieGrid(results, onMovie, Modifier.weight(1f), resultsEntry)
+        else MovieGrid(results, onMovie, Modifier.weight(1f), resultsEntry, gridState)
     }
 }
 
@@ -353,12 +367,19 @@ fun BrowseScreen(movies: List<MovieEntity>, entryFocusRequester: FocusRequester,
     syncRunning: Boolean, syncMessage: String?, onRefresh: (Boolean) -> Unit, onMovie: (Long) -> Unit) {
     val genreFocus = remember { FocusRequester() }
     val controlsFocus = remember { FocusRequester() }
-    var language by remember { mutableStateOf("All") }
-    var genre by remember { mutableStateOf("All") }
-    var year by remember { mutableStateOf("All") }
-    var sort by remember { mutableStateOf("Newest") }
+    var language by rememberSaveable { mutableStateOf("All") }
+    var genre by rememberSaveable { mutableStateOf("All") }
+    var year by rememberSaveable { mutableStateOf("All") }
+    var sort by rememberSaveable { mutableStateOf("Newest") }
     val years = listOf("All", "2023+", "2020–2022", "2015–2019")
-    val sorts = listOf("Newest", "Rating", "Popularity", "A–Z")
+    val sorts = listOf("Recently added", "Newest", "Rating", "Popularity", "A–Z")
+    val gridState = rememberLazyGridState()
+    val filterKey = "$language|$genre|$year|$sort"
+    var previousFilterKey by rememberSaveable { mutableStateOf(filterKey) }
+    LaunchedEffect(filterKey) {
+        if (filterKey != previousFilterKey) gridState.scrollToItem(0)
+        previousFilterKey = filterKey
+    }
     val filtered = remember(movies, language, genre, year, sort) {
         browseMovies(movies, BrowseOptions(language, genre, year, sort))
     }
@@ -366,13 +387,17 @@ fun BrowseScreen(movies: List<MovieEntity>, entryFocusRequester: FocusRequester,
     val columns = maxOf(1, ((maxWidth - 54.dp).value / 189f).toInt())
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
+        state = gridState,
         modifier = Modifier.fillMaxSize().background(Ink).focusRequester(entryFocusRequester),
         contentPadding = PaddingValues(start = 34.dp, end = 34.dp, top = 26.dp, bottom = 34.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            ScreenHeading("Explore", "Browse films", "Filter local listings by language and year. Genre filters use matched metadata.")
+            ScreenHeading("Explore", "Browse films", "Choose a language, then narrow the local catalogue.")
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Text("LANGUAGE", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(Modifier.fillMaxWidth().focusGroup().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -387,6 +412,7 @@ fun BrowseScreen(movies: List<MovieEntity>, entryFocusRequester: FocusRequester,
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(Modifier.fillMaxWidth().focusGroup().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FocusAction("Year: $year", { year = years[(years.indexOf(year) + 1) % years.size] }, modifier = Modifier.focusRequester(controlsFocus), quiet = true, menuOnLeft = true)
+                FocusAction("Recently added", { sort = "Recently added" }, selected = sort == "Recently added", quiet = true)
                 FocusAction("Sort: $sort", { sort = sorts[(sorts.indexOf(sort) + 1) % sorts.size] }, quiet = true)
                 FocusAction("Clear filters", { language = "All"; genre = "All"; year = "All"; sort = "Newest" }, quiet = true)
                 FocusAction("Check new", { if (!syncRunning) onRefresh(false) }, quiet = true)
@@ -419,10 +445,12 @@ fun MyListScreen(profile: ProfileEntity?, movies: List<MovieEntity>, entryFocusR
 
 @Composable
 @OptIn(ExperimentalComposeUiApi::class)
-private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifier: Modifier = Modifier, entryFocusRequester: FocusRequester? = null) {
+private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifier: Modifier = Modifier,
+    entryFocusRequester: FocusRequester? = null, gridState: LazyGridState = rememberLazyGridState()) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val columns = maxOf(1, ((maxWidth.value + 14f) / 189f).toInt())
-        LazyVerticalGrid(columns = GridCells.Fixed(columns), modifier = Modifier.fillMaxSize().then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(17.dp)) {
+        LazyVerticalGrid(columns = GridCells.Fixed(columns), state = gridState,
+            modifier = Modifier.fillMaxSize().then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(17.dp)) {
             itemsIndexed(movies, key = { _, movie -> movie.id }) { index, movie ->
                 MovieCard(movie, { onMovie(movie.id) }, menuOnLeft = index % columns == 0)
             }
@@ -431,37 +459,58 @@ private fun MovieGrid(movies: List<MovieEntity>, onMovie: (Long) -> Unit, modifi
 }
 
 @Composable
-fun DetailsScreen(movie: MovieEntity?, inList: Boolean, onToggleList: () -> Unit, onPlay: () -> Unit,
-    onTestWebPlayback: () -> Unit, onBack: () -> Unit) {
+fun DetailsScreen(movie: MovieEntity?, related: List<MovieEntity>, inList: Boolean, onRelatedMovie: (Long) -> Unit,
+    onToggleList: () -> Unit, onPlay: () -> Unit, onTestWebPlayback: () -> Unit, onBack: () -> Unit) {
     if (movie == null) { EmptyState("Film unavailable", "This film is not in the local catalogue."); return }
-    Column(Modifier.fillMaxSize().background(Ink).verticalScroll(rememberScrollState()).padding(horizontal = 50.dp, vertical = 34.dp)) {
-        FocusAction("←  Back", onBack, quiet = true)
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(34.dp)) {
-            MovieArtwork(movie, Modifier.width(246.dp).height(335.dp))
-            Column(Modifier.weight(1f)) {
-                val playable = com.chitram.tv.data.configuredTestPlaybackUrl(movie,
-                    com.chitram.tv.BuildConfig.TEST_PLAYBACK_SOURCE_ID,
-                    com.chitram.tv.BuildConfig.TEST_PLAYBACK_URL) != null
-                Text(if (movie.isDemo) "DEMO FILM" else if (playable) "EINTHUSAN LISTING · TEST STREAM CONFIGURED" else "EINTHUSAN LISTING · PLAYBACK UNVERIFIED", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                Spacer(Modifier.height(10.dp))
-                Text(movie.title, color = Cream, fontSize = 33.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(10.dp))
-                Text("${movie.releaseYear}   •   ${movie.language}   •   ${movie.genres.replace("|", " / ")}", color = Muted, fontSize = 14.sp)
-                Spacer(Modifier.height(10.dp))
-                if (movie.isDemo) Text("Demo rating ${"%.1f".format(movie.rating)} / 10", color = Gold, fontSize = 15.sp)
-                else if (movie.ratingSource == "tmdb") Text("TMDB community rating ${"%.1f".format(movie.rating)} / 10", color = Gold, fontSize = 15.sp)
-                Spacer(Modifier.height(26.dp))
-                Text(movie.synopsis, color = Cream.copy(alpha = .85f), fontSize = 16.sp, lineHeight = 24.sp)
-                Spacer(Modifier.height(28.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (playable) FocusAction("Play test stream", onPlay, selected = true)
-                    if (com.chitram.tv.BuildConfig.DEBUG && com.chitram.tv.data.verifiedWebPlaybackPage(movie) != null) {
-                        FocusAction("Test Web Playback", onTestWebPlayback, quiet = true)
-                    }
-                    FocusAction(if (inList) "Remove from My List" else "Add to My List", onToggleList, quiet = true)
+    val playable = com.chitram.tv.data.configuredTestPlaybackUrl(movie,
+        com.chitram.tv.BuildConfig.TEST_PLAYBACK_SOURCE_ID, com.chitram.tv.BuildConfig.TEST_PLAYBACK_URL) != null
+    BoxWithConstraints(Modifier.fillMaxSize().background(Ink)) {
+        val compact = maxHeight < 450.dp
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 12.dp, bottom = 38.dp)) {
+            Box(Modifier.padding(start = 34.dp)) { FocusAction("←  Back", onBack, quiet = true) }
+            Spacer(Modifier.height(14.dp))
+            Box(Modifier.fillMaxWidth().height(if (compact) 190.dp else 290.dp).clip(RoundedCornerShape(12.dp))
+                .background(Brush.horizontalGradient(listOf(Color(movie.artColor.toInt()), Panel, Ink)))) {
+                val art = movie.backdropUrl ?: movie.posterUrl
+                if (art != null) AsyncImage(model = art, contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+                else if (movie.title == "After the Festival") Image(painterResource(R.drawable.after_the_festival), contentDescription = null, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+                Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(Ink.copy(alpha = .98f), Ink.copy(alpha = .78f), Ink.copy(alpha = .16f)))))
+                Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.72f).padding(horizontal = 34.dp, vertical = 14.dp)) {
+                    Text(if (movie.isDemo) "DEMO FILM" else if (playable) "EINTHUSAN LISTING · TEST STREAM" else "EINTHUSAN LISTING · PLAYBACK UNVERIFIED",
+                        color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text(movie.title, color = Cream, fontSize = if (compact) 31.sp else 42.sp, lineHeight = if (compact) 34.sp else 46.sp,
+                        fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(8.dp))
+                    Text(listOfNotNull(movie.releaseYear.takeIf { it > 0 }?.toString(), movie.language,
+                        movie.genres.takeIf { it.isNotBlank() }?.replace("|", "  ·  ")).joinToString("  ·  "),
+                        color = Cream.copy(alpha = .85f), fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                if (!playable && !movie.isDemo) Text("Playback source has not been verified for this listing.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 12.dp))
+            }
+            Spacer(Modifier.height(22.dp))
+            Row(Modifier.fillMaxWidth().focusGroup().horizontalScroll(rememberScrollState()).padding(horizontal = 34.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (playable) FocusAction("Play test stream", onPlay, selected = true)
+                if (com.chitram.tv.BuildConfig.DEBUG && com.chitram.tv.data.verifiedWebPlaybackPage(movie) != null)
+                    FocusAction("Test Web Playback", onTestWebPlayback, quiet = true)
+                FocusAction(if (inList) "✓  In My List" else "+  Add to My List", onToggleList, selected = inList)
+            }
+            if (!playable && !movie.isDemo) Text("Playback has not been verified for this listing.", color = Muted, fontSize = 13.sp,
+                modifier = Modifier.padding(start = 34.dp, top = 12.dp))
+            Spacer(Modifier.height(24.dp))
+            Text("ABOUT THIS FILM", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp,
+                modifier = Modifier.padding(horizontal = 34.dp))
+            Spacer(Modifier.height(10.dp))
+            Text(movie.synopsis.ifBlank { "A description is not available for this listing yet." },
+                color = Cream.copy(alpha = .88f), fontSize = 16.sp, lineHeight = 24.sp,
+                modifier = Modifier.fillMaxWidth(.88f).padding(horizontal = 34.dp))
+            if (movie.isDemo) Text("Demo rating ${"%.1f".format(movie.rating)} / 10", color = Gold, fontSize = 13.sp,
+                modifier = Modifier.padding(start = 34.dp, top = 12.dp))
+            else if (movie.ratingSource == "tmdb") Text("TMDB community rating ${"%.1f".format(movie.rating)} / 10", color = Gold, fontSize = 13.sp,
+                modifier = Modifier.padding(start = 34.dp, top = 12.dp))
+            if (related.isNotEmpty()) {
+                Spacer(Modifier.height(30.dp))
+                MovieRail(HomeRow("More like this", related), onRelatedMovie, compact = compact)
             }
         }
     }

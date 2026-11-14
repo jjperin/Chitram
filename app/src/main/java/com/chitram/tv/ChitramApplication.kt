@@ -6,6 +6,7 @@ import com.chitram.tv.data.ChitramDatabase
 import com.chitram.tv.data.ChitramRepository
 import com.chitram.tv.data.MIGRATION_1_2
 import com.chitram.tv.data.MIGRATION_2_3
+import com.chitram.tv.data.MIGRATION_3_4
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
@@ -14,7 +15,7 @@ import coil.memory.MemoryCache
 class ChitramApplication : Application(), ImageLoaderFactory {
     val database by lazy {
         Room.databaseBuilder(this, ChitramDatabase::class.java, "chitram.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
     val repository by lazy { ChitramRepository(database) }

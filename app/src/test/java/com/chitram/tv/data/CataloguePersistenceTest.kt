@@ -35,6 +35,8 @@ class CataloguePersistenceTest {
         assertEquals("Example Film Updated", after.title)
         assertEquals("Full description", after.synopsis)
         assertEquals("listed", after.availability)
+        assertTrue(after.firstSeenAtMs > 0)
+        assertEquals(stored.firstSeenAtMs, after.firstSeenAtMs)
         assertTrue(reopened.watchlist().contains(profileId, after.id))
         reopened.close()
         context.deleteDatabase(name)
@@ -63,10 +65,11 @@ class CataloguePersistenceTest {
         legacy.version = 1
         legacy.close()
 
-        val upgraded = Room.databaseBuilder(context, ChitramDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        val upgraded = Room.databaseBuilder(context, ChitramDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
         assertEquals("Jake", upgraded.profiles().observeAll().first().single().name)
         assertEquals("demo", upgraded.movies().findById(1)!!.availability)
         assertEquals(0, upgraded.movies().findById(1)!!.tmdbCheckedAtMs)
+        assertEquals(0, upgraded.movies().findById(1)!!.firstSeenAtMs)
         assertTrue(upgraded.watchlist().contains(1, 1))
         upgraded.close()
         context.deleteDatabase(name)

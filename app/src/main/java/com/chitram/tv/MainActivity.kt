@@ -40,6 +40,7 @@ import com.chitram.tv.ui.ProfilePickerScreen
 import com.chitram.tv.ui.SearchScreen
 import com.chitram.tv.ui.Sidebar
 import com.chitram.tv.ui.UpdateScreen
+import com.chitram.tv.domain.relatedMovies
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,8 +72,13 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
     val progress = if (progressState.first == profile?.id) progressState.second else emptyList()
 
     fun openMain(route: String) {
-        nav.navigate(route) { launchSingleTop = true }
+        nav.navigate(route) {
+            popUpTo("home") { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
     }
+    fun openMovie(id: Long) { nav.navigate("details/$id") { launchSingleTop = true } }
 
     NavHost(
         navController = nav,
@@ -84,8 +90,8 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                 profiles = profiles,
                 loading = !profilesLoaded,
                 onSelect = { vm.selectProfile(it); nav.navigate("home") { popUpTo("profiles") { inclusive = true } } },
-                onCreate = { openMain("editor/0") },
-                onEdit = { openMain("editor/$it") },
+                onCreate = { nav.navigate("editor/0") },
+                onEdit = { nav.navigate("editor/$it") },
                 error = error
             )
         }
@@ -116,11 +122,11 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
                         CompositionLocalProvider(LocalMenuFocusRequester provides selectedMenuItem,
                             LocalArtworkPrefetch provides vm::prefetchArtwork) {
                             when (route) {
-                                "home" -> HomeScreen(profile, homeMovies, progress, contentEntry, onMovie = { openMain("details/$it") })
-                                "search" -> SearchScreen(searchQuery, searchResults, vm::setSearchQuery, contentEntry, onMovie = { openMain("details/$it") })
+                                "home" -> HomeScreen(profile, homeMovies, progress, contentEntry, onMovie = ::openMovie)
+                                "search" -> SearchScreen(searchQuery, searchResults, vm::setSearchQuery, contentEntry, onMovie = ::openMovie)
                                 "browse" -> BrowseScreen(movies, contentEntry, sourceCount, syncRunning,
-                                    syncMessage ?: syncState?.lastError, vm::refreshCatalogue, onMovie = { openMain("details/$it") })
-                                "mylist" -> MyListScreen(profile, savedMovies, contentEntry, onMovie = { openMain("details/$it") })
+                                    syncMessage ?: syncState?.lastError, vm::refreshCatalogue, onMovie = ::openMovie)
+                                "mylist" -> MyListScreen(profile, savedMovies, contentEntry, onMovie = ::openMovie)
                                 "about" -> AboutScreen()
                                 "updates" -> UpdateScreen(contentEntry)
                             }
@@ -131,9 +137,11 @@ private fun ChitramApp(vm: ChitramViewModel = viewModel()) {
         }
         composable("details/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
             val movie = movies.find { it.id == entry.arguments?.getLong("id") }
+            val related = remember(movie?.id, movies) { movie?.let { relatedMovies(it, movies) } ?: emptyList() }
             LaunchedEffect(movie?.id) { movie?.id?.let(vm::enrichMovie) }
             CompositionLocalProvider(LocalArtworkPrefetch provides vm::prefetchArtwork) {
-                DetailsScreen(movie, movie?.id in savedIds, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } },
+                DetailsScreen(movie, related, movie?.id in savedIds,
+                    onRelatedMovie = ::openMovie, onToggleList = { movie?.let { vm.toggleWatchlist(it.id) } },
                     onPlay = {
                         val source = movie ?: return@DetailsScreen
                         val viewer = profile ?: return@DetailsScreen

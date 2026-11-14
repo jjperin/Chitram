@@ -22,6 +22,7 @@ fun browseMovies(movies: List<MovieEntity>, options: BrowseOptions): List<MovieE
             }
         }
     return when (options.sort) {
+        "Recently added" -> matching.sortedWith(compareByDescending<MovieEntity> { it.firstSeenAtMs }.thenByDescending { it.releaseYear }.thenBy { it.title })
         "Rating" -> matching.sortedWith(compareByDescending<MovieEntity> { it.rating }.thenBy { it.title })
         "Popularity" -> matching.sortedWith(compareByDescending<MovieEntity> { it.popularity }.thenBy { it.title })
         "A–Z" -> matching.sortedBy { it.title }

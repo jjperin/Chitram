@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,8 +111,14 @@ fun MovieArtwork(movie: MovieEntity, modifier: Modifier = Modifier, landscape: B
         )
     ) {
         val url = if (landscape) movie.backdropUrl ?: movie.posterUrl else movie.posterUrl ?: movie.backdropUrl
-        if (url != null) AsyncImage(model = url, contentDescription = "Artwork for ${movie.title}", modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
-        else if (movie.title == "After the Festival") Image(painterResource(R.drawable.after_the_festival), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+        if (movie.title != "After the Festival") {
+            Text(movie.title.take(1).uppercase(), color = Cream.copy(alpha = .10f), fontSize = if (landscape) 88.sp else 110.sp,
+                fontWeight = FontWeight.Black, modifier = Modifier.align(Alignment.Center))
+        }
+        if (url != null) AsyncImage(model = url, contentDescription = "Artwork for ${movie.title}",
+            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        else if (movie.title == "After the Festival") Image(painterResource(R.drawable.after_the_festival),
+            contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink.copy(alpha = .82f)), startY = 70f)))
         Box(Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(4.dp)).background(Ink.copy(alpha = .88f)).padding(horizontal = 7.dp, vertical = 4.dp)) {
             Text(if (movie.isDemo) "DEMO" else "LISTED", color = Cream, fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -137,7 +145,7 @@ fun MovieCard(movie: MovieEntity, onClick: () -> Unit, modifier: Modifier = Modi
                 focused = it.isFocused
                 if (it.isFocused) onFocus()
             }.clickable(onClick = onClick)
-            .background(Ink).padding(3.dp)
+            .background(if (focused) PanelLight else Ink).padding(3.dp)
     ) {
         MovieArtwork(movie, Modifier.fillMaxWidth().height(if (compact) 80.dp else if (landscape) 126.dp else 204.dp), landscape = landscape, small = compact)
         Spacer(Modifier.height(if (compact) 4.dp else 7.dp))
@@ -157,7 +165,7 @@ fun MovieRail(row: HomeRow, onMovie: (Long) -> Unit, onMovieFocus: (Long) -> Uni
             Text("${row.movies.size} films", color = Muted, fontSize = 12.sp)
         }
         LazyRow(
-            modifier = Modifier.then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier),
+            modifier = Modifier.focusGroup().then(entryFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier),
             contentPadding = PaddingValues(horizontal = 34.dp),
             horizontalArrangement = Arrangement.spacedBy(17.dp)
         ) {

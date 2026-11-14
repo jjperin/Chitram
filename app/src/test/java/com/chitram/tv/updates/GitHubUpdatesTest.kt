@@ -16,6 +16,11 @@ class GitHubUpdatesTest {
         assertEquals(2, parseRelease(release("v2"), 1)?.versionCode)
     }
 
+    @Test fun releaseNotesAreShownWithoutChangingAssetValidation() {
+        val json = release("v2").replace("\"tag_name\":\"v2\"", "\"tag_name\":\"v2\",\"body\":\"Navigation and artwork polish\"")
+        assertEquals("Navigation and artwork polish", parseRelease(json, 1)?.notes)
+    }
+
     @Test fun installedAndOlderReleasesAreIgnored() {
         assertNull(parseRelease(release("v2"), 2))
         assertNull(parseRelease(release("v2"), 3))

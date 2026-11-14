@@ -50,6 +50,7 @@ class ChitramViewModel(application: Application) : AndroidViewModel(application)
         else repository.progress(id).map { id to it }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null to emptyList())
     val searchQuery = MutableStateFlow("")
+    private val profileSearchQueries = mutableMapOf<Long, String>()
     val searchResults = searchQuery.debounce(180).flatMapLatest { query ->
         query.trim().takeIf { it.isNotEmpty() }?.let(repository::search) ?: flowOf(emptyList())
     }
@@ -78,6 +79,7 @@ class ChitramViewModel(application: Application) : AndroidViewModel(application)
 
     fun selectProfile(id: Long) {
         activeProfileId.value = id
+        searchQuery.value = profileSearchQueries[id].orEmpty()
         val primary = profiles.value.firstOrNull { it.id == id }?.primaryLanguage ?: return
         val firstListings = movies.value.asSequence().filter { !it.isDemo && it.language == primary }
             .sortedByDescending { it.releaseYear }.take(6).toList()
@@ -89,7 +91,10 @@ class ChitramViewModel(application: Application) : AndroidViewModel(application)
             loader.enqueue(ImageRequest.Builder(context).data(url).size(342, 513).build())
         }
     }
-    fun setSearchQuery(query: String) { searchQuery.value = query }
+    fun setSearchQuery(query: String) {
+        searchQuery.value = query
+        activeProfileId.value?.let { profileSearchQueries[it] = query }
+    }
     fun prefetchArtwork(movieId: Long) { artworkQueue.trySend(movieId) }
 
     fun enrichMovie(movieId: Long) {

@@ -23,4 +23,10 @@ class BrowseTest {
         val later = DemoCatalogue.movies.first().copy(id = 999L, releaseYear = 2026)
         assertTrue(later in browseMovies(listOf(later), BrowseOptions(year = "2023+")))
     }
+
+    @Test fun recentlyAddedUsesDiscoveryTime() {
+        val old = DemoCatalogue.movies.first().copy(id = 901, releaseYear = 2026, firstSeenAtMs = 100)
+        val new = DemoCatalogue.movies.first().copy(id = 902, releaseYear = 2020, firstSeenAtMs = 200)
+        assertEquals(new.id, browseMovies(listOf(old, new), BrowseOptions(sort = "Recently added")).first().id)
+    }
 }

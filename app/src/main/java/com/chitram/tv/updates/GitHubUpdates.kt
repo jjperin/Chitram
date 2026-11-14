@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-data class AvailableUpdate(val versionCode: Int, val downloadUrl: String, val sha256: String, val size: Long)
+data class AvailableUpdate(val versionCode: Int, val downloadUrl: String, val sha256: String, val size: Long, val notes: String)
 class NoPublishedRelease : Exception()
 
 internal fun parseRelease(json: String, installedVersion: Int): AvailableUpdate? {
@@ -35,7 +35,8 @@ internal fun parseRelease(json: String, installedVersion: Int): AvailableUpdate?
         throw IllegalArgumentException("Release has no valid SHA-256 digest")
     val size = asset.getLong("size")
     if (size !in 1..100_000_000) throw IllegalArgumentException("Release APK size is invalid")
-    return AvailableUpdate(version, url, digest.removePrefix("sha256:").lowercase(), size)
+    val notes = release.optString("body").take(600).trim().ifBlank { "Bug fixes and improvements." }
+    return AvailableUpdate(version, url, digest.removePrefix("sha256:").lowercase(), size, notes)
 }
 
 class GitHubUpdates(private val context: Context) {
@@ -56,11 +57,14 @@ class GitHubUpdates(private val context: Context) {
         } finally { connection.disconnect() }
     }
 
-    suspend fun download(update: AvailableUpdate): File = withContext(Dispatchers.IO) {
+    suspend fun download(update: AvailableUpdate, onProgress: suspend (Int) -> Unit = {}): File = withContext(Dispatchers.IO) {
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
         val target = File(dir, "chitram-v${update.versionCode}.apk")
         val part = File(dir, "download.part")
-        if (target.isFile && verify(target, update)) return@withContext target
+        if (target.isFile && verify(target, update)) {
+            withContext(Dispatchers.Main) { onProgress(100) }
+            return@withContext target
+        }
         target.delete()
         part.delete()
         val connection = (URL(update.downloadUrl).openConnection() as HttpURLConnection).apply {
@@ -73,12 +77,18 @@ class GitHubUpdates(private val context: Context) {
             connection.inputStream.use { input -> part.outputStream().use { output ->
                 val buffer = ByteArray(8192)
                 var received = 0L
+                var reported = -1
                 while (true) {
                     val count = input.read(buffer)
                     if (count < 0) break
                     received += count
                     if (received > update.size) throw IllegalStateException("APK is larger than advertised")
                     output.write(buffer, 0, count)
+                    val percent = (received * 100 / update.size).toInt()
+                    if (percent >= reported + 5 || percent == 100) {
+                        reported = percent
+                        withContext(Dispatchers.Main) { onProgress(percent) }
+                    }
                 }
             } }
             if (!verify(part, update)) throw IllegalStateException("Downloaded APK failed verification")

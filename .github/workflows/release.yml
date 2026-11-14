@@ -71,4 +71,4 @@ jobs:
         run: |
           code=$((GITHUB_RUN_NUMBER + 1))
           cp app/build/outputs/apk/release/app-release.apk chitram-tv.apk
-          gh release create "v$code" chitram-tv.apk --title "Chitram v$code" --notes "Android TV update for this commit. Playback availability remains experimental." --latest
+          gh release create "v$code" chitram-tv.apk --title "Chitram v$code" --notes "Changes: $(git log -1 --pretty=%s). Playback availability remains experimental." --latest
